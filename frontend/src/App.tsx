@@ -9,14 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import Liver3DViewer from './Liver3DViewer'
-import LandingPage from './LandingPage'
 import AnalyticsDashboard from './AnalyticsDashboard'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-type Page = 'landing' | 'analysis' | 'dashboard'
+type Page = 'analysis' | 'dashboard'
 
 function DemoField({ label, value, darkMode }: { label: string; value: string; darkMode: boolean }) {
   return (
@@ -42,6 +41,7 @@ interface AnalysisResult {
     area: string
     severity: string
   }
+  overlayImageUrl?: string
   gpt5Analysis: string
   metrics: {
     processingTime: string
@@ -57,9 +57,22 @@ interface AnalysisResult {
   }
 }
 
+interface Patient {
+  id: string
+  filename: string
+  label: string
+}
+
+interface BatchResult {
+  patient_id: string
+  success: boolean
+  data?: AnalysisResult
+  error?: string
+}
+
 function App() {
   const [darkMode, setDarkMode] = useState(true)
-  const [currentPage, setCurrentPage] = useState<Page>('landing')
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard')
   const [selectedModality, setSelectedModality] = useState('liver-mri')
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
@@ -67,6 +80,11 @@ function App() {
   const [results, setResults] = useState<AnalysisResult | null>(null)
   const [activeTab, setActiveTab] = useState('upload')
   const [useMockData, setUseMockData] = useState(true)
+  const [patients, setPatients] = useState<Patient[]>([])
+  const [selectedPatient, setSelectedPatient] = useState<string>('')
+  const [batchPatients, setBatchPatients] = useState<string[]>([])
+  const [batchResults, setBatchResults] = useState<BatchResult[]>([])
+  const [batchProcessing, setBatchProcessing] = useState(false)
   const ensureDataUrlPrefix = (url: string | null): string | null => {
     if (!url) return null
     if (url.startsWith('data:')) return url
@@ -84,11 +102,16 @@ function App() {
       .then(res => res.json())
       .then(data => setUseMockData(data.useMockData))
       .catch(err => console.error('Config fetch error:', err))
+    
+    fetch(`${API_URL}/api/patients`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setPatients(data.patients)
+        }
+      })
+      .catch(err => console.error('Patients fetch error:', err))
   }, [])
-
-  if (currentPage === 'landing') {
-    return <LandingPage darkMode={darkMode} onEnter={() => setCurrentPage('analysis')} />
-  }
 
   if (currentPage === 'dashboard') {
     return <AnalyticsDashboard darkMode={darkMode} onNavigate={setCurrentPage} />
@@ -104,7 +127,7 @@ function App() {
   const analysisSteps = [
     { name: 'Image Upload', status: 'complete' },
     { name: 'MedImageParse3D Segmentation', status: analysisStep >= 1 ? 'complete' : 'pending' },
-    { name: 'GPT-4.1 Clinical Analysis', status: analysisStep >= 2 ? 'complete' : 'pending' }
+    { name: 'GPT-4.1 Analysis', status: analysisStep >= 2 ? 'complete' : 'pending' }
   ]
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,6 +147,9 @@ function App() {
     try {
       const formData = new FormData()
       formData.append('modality', selectedModality)
+      if (selectedPatient) {
+        formData.append('patient_id', selectedPatient)
+      }
       
       const response = await fetch(`${API_URL}/api/upload-demo`, {
         method: 'POST',
@@ -167,10 +193,13 @@ function App() {
       const formData = new FormData()
       formData.append('image', blob, 'image.png')
       formData.append('modality', selectedModality)
+      if (selectedPatient) {
+        formData.append('patient_id', selectedPatient)
+      }
 
-      for (let step = 1; step <= 2; step++) {
+      for (let step = 1; step <= analysisSteps.length; step++) {
         setAnalysisStep(step)
-        await new Promise(resolve => setTimeout(resolve, 800))
+        await new Promise(resolve => setTimeout(resolve, 1000))
       }
 
       const analysisResponse = await fetch(`${API_URL}/api/analyze`, {
@@ -184,7 +213,7 @@ function App() {
 
       const result = await analysisResponse.json()
       setResults(result.data)
-      setAnalysisStep(3)
+      setAnalysisStep(analysisSteps.length + 1)
     } catch (error) {
       console.error('Analysis error:', error)
       alert('Error processing image. Please try again.')
@@ -199,27 +228,24 @@ function App() {
         <div className="container mx-auto px-4 py-4 flex gap-4 items-center justify-between">
           <div className="flex gap-4">
             <button
-              onClick={() => setCurrentPage('landing')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                darkMode ? 'hover:bg-slate-700 text-gray-300' : 'hover:bg-gray-100 text-slate-700'
-              }`}
-            >
-              Home
-            </button>
-            <button
-              className={`px-4 py-2 rounded-lg ${
-                darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
-              }`}
-            >
-              Analysis
-            </button>
-            <button
               onClick={() => setCurrentPage('dashboard')}
               className={`px-4 py-2 rounded-lg transition-colors ${
-                darkMode ? 'hover:bg-slate-700 text-gray-300' : 'hover:bg-gray-100 text-slate-700'
+                currentPage === 'dashboard'
+                  ? darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+                  : darkMode ? 'hover:bg-slate-700 text-gray-300' : 'hover:bg-gray-100 text-slate-700'
               }`}
             >
               Dashboard
+            </button>
+            <button
+              onClick={() => setCurrentPage('analysis')}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                currentPage === 'analysis'
+                  ? darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+                  : darkMode ? 'hover:bg-slate-700 text-gray-300' : 'hover:bg-gray-100 text-slate-700'
+              }`}
+            >
+              Analysis
             </button>
           </div>
           <Button
@@ -284,7 +310,7 @@ function App() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className={`grid w-full grid-cols-3 ${darkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+          <TabsList className={`grid w-full grid-cols-4 ${darkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
             <TabsTrigger value="upload" className={darkMode ? 'data-[state=active]:bg-blue-900' : ''}>
               Upload Image
             </TabsTrigger>
@@ -294,19 +320,53 @@ function App() {
             <TabsTrigger value="results" className={darkMode ? 'data-[state=active]:bg-blue-900' : ''} disabled={!results}>
               Results
             </TabsTrigger>
+            <TabsTrigger value="batch" className={darkMode ? 'data-[state=active]:bg-blue-900' : ''}>
+              Batch Processing
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="upload" className="mt-6">
             <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
               <CardHeader>
                 <CardTitle className={darkMode ? 'text-white' : 'text-slate-900'}>
-                  Upload Liver Imaging
+                  Upload Liver Imaging or Select Patient
                 </CardTitle>
                 <CardDescription className={darkMode ? 'text-gray-400' : 'text-slate-600'}>
-                  Select a {selectedModality.replace('-', ' ').toUpperCase()} image for liver disease analysis
+                  Upload a {selectedModality.replace('-', ' ').toUpperCase()} image or select a patient by ID
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {patients.length > 0 && (
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                      Select Patient by ID
+                    </label>
+                    <select
+                      value={selectedPatient}
+                      onChange={(e) => {
+                        setSelectedPatient(e.target.value)
+                        if (e.target.value) {
+                          loadDemoImage()
+                        }
+                      }}
+                      className={`w-full px-4 py-2 rounded-lg border ${
+                        darkMode 
+                          ? 'bg-slate-900 border-slate-700 text-white' 
+                          : 'bg-white border-slate-300 text-slate-900'
+                      }`}
+                    >
+                      <option value="">-- Select a patient --</option>
+                      {patients.map(patient => (
+                        <option key={patient.id} value={patient.id}>
+                          {patient.label} ({patient.id})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <div className="text-center">
+                  <p className={`mb-3 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>or</p>
+                </div>
                 <div
                   className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
                     darkMode
@@ -432,167 +492,440 @@ function App() {
           </TabsContent>
 
           <TabsContent value="results" className="mt-6">
+            {processing && !results && (
+              <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+                <CardContent className="py-12">
+                  <div className="flex flex-col items-center justify-center space-y-6">
+                    <div className="relative">
+                      <Loader2 className={`h-16 w-16 animate-spin ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                      <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping" />
+                    </div>
+                    <div className="text-center space-y-2">
+                      <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                        Processing Liver Scan
+                      </h3>
+                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                        {analysisStep === 1 && 'Running MedImageParse3D segmentation analysis...'}
+                        {analysisStep === 2 && 'Generating GPT-4.1 initial clinical analysis...'}
+                        {analysisStep === 0 && 'Initializing AI models...'}
+                      </p>
+                    </div>
+                    <div className="w-full max-w-md">
+                      <Progress value={(analysisStep / 3) * 100} className="h-2" />
+                      <p className={`text-xs text-center mt-2 ${darkMode ? 'text-gray-500' : 'text-slate-500'}`}>
+                        Step {analysisStep} of 3
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {results && (
               <div className="space-y-6">
-                <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+                <Card className={darkMode ? 'bg-gradient-to-br from-blue-900/30 to-slate-800/50 border-blue-500/30' : 'bg-gradient-to-br from-blue-50 to-white border-blue-200'}>
                   <CardHeader>
-                    <CardTitle className={darkMode ? 'text-white' : 'text-slate-900'}>
-                      Liver Analysis Complete
-                    </CardTitle>
-                    <CardDescription className={darkMode ? 'text-gray-400' : 'text-slate-600'}>
-                      Comprehensive AI-powered liver disease assessment
-                    </CardDescription>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className={`text-2xl ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                          ✓ Analysis Complete
+                        </CardTitle>
+                        <CardDescription className={darkMode ? 'text-gray-400' : 'text-slate-600'}>
+                          AI-powered liver disease assessment results
+                        </CardDescription>
+                      </div>
+                      <CheckCircle2 className={`h-12 w-12 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
+                    </div>
                   </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent>
                     <div className="grid grid-cols-3 gap-4">
-                      <div className={`${darkMode ? 'bg-blue-900/30' : 'bg-blue-100'} p-4 rounded-xl`}>
-                        <div className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                      <div className={`${darkMode ? 'bg-blue-900/40' : 'bg-blue-100'} p-6 rounded-xl border ${darkMode ? 'border-blue-500/30' : 'border-blue-200'}`}>
+                        <div className={`text-3xl font-bold mb-1 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
                           {results.metrics.processingTime}
                         </div>
-                        <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
-                          Process Time
+                        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                          Processing Time
                         </div>
                       </div>
-                      <div className={`${darkMode ? 'bg-green-900/30' : 'bg-green-100'} p-4 rounded-xl`}>
-                        <div className={`text-2xl font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                      <div className={`${darkMode ? 'bg-green-900/40' : 'bg-green-100'} p-6 rounded-xl border ${darkMode ? 'border-green-500/30' : 'border-green-200'}`}>
+                        <div className={`text-3xl font-bold mb-1 ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
                           {results.metrics.accuracy}
                         </div>
-                        <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
-                          Accuracy
+                        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                          Accuracy Score
                         </div>
                       </div>
-                      <div className={`${darkMode ? 'bg-purple-900/30' : 'bg-purple-100'} p-4 rounded-xl`}>
-                        <div className={`text-2xl font-bold ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>
+                      <div className={`${darkMode ? 'bg-purple-900/40' : 'bg-purple-100'} p-6 rounded-xl border ${darkMode ? 'border-purple-500/30' : 'border-purple-200'}`}>
+                        <div className={`text-3xl font-bold mb-1 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>
                           {results.metrics.modelsUsed}
                         </div>
-                        <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
-                          AI Models
+                        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                          AI Models Used
                         </div>
-                      </div>
-                    </div>
-
-                    {uploadedImage && (
-                      <div className="my-6">
-                        <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                          3D Liver Visualization
-                        </h3>
-                        <Liver3DViewer imageUrl={safeUploadedImage!} darkMode={darkMode} />
-                      </div>
-                    )}
-
-                    {results.demographics && (
-                      <div className="my-6">
-                        <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                          Patient Demographics
-                        </h3>
-                        <div className={`p-6 rounded-xl ${
-                          darkMode ? 'bg-slate-800' : 'bg-white'
-                        } border ${darkMode ? 'border-slate-700' : 'border-gray-200'}`}>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                            <DemoField 
-                              label="Patient ID" 
-                              value={results.demographics.patient_id} 
-                              darkMode={darkMode} 
-                            />
-                            <DemoField 
-                              label="Age" 
-                              value={`${results.demographics.age} years`} 
-                              darkMode={darkMode} 
-                            />
-                            <DemoField 
-                              label="Gender" 
-                              value={results.demographics.gender} 
-                              darkMode={darkMode} 
-                            />
-                            <DemoField 
-                              label="Ethnicity" 
-                              value={results.demographics.ethnicity} 
-                              darkMode={darkMode} 
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className={`${darkMode ? 'bg-slate-900/50' : 'bg-slate-50'} p-4 rounded-xl`}>
-                      <div className={`text-sm font-semibold mb-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                        Liver Feature Classification
-                      </div>
-                      <div className={`font-bold mb-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                        {results.embeddings.classification}
-                      </div>
-                      <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-600'} space-y-1`}>
-                        {results.embeddings.features.map((feature, idx) => (
-                          <div key={idx}>• {feature}</div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className={`${darkMode ? 'bg-slate-900/50' : 'bg-slate-50'} p-4 rounded-xl`}>
-                      <div className={`text-sm font-semibold mb-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                        Liver Tumor Segmentation
-                      </div>
-                      <div className="space-y-2">
-                        {results.segmentation.detected.map((item, idx) => (
-                          <div key={idx} className={`flex items-center justify-between ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                            <span>• {item}</span>
-                            <span className={`text-xs px-2 py-1 rounded ${darkMode ? 'bg-blue-900/50' : 'bg-blue-200'}`}>
-                              Detected
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className={`${darkMode ? 'bg-slate-900/50' : 'bg-slate-50'} p-4 rounded-xl`}>
-                      <div className={`text-sm font-semibold mb-3 ${darkMode ? 'text-blue-400' : 'text-blue-600'} flex items-center gap-2`}>
-                        <Brain className="w-4 h-4" />
-                        Hepatology Clinical Analysis
-                      </div>
-                      <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-slate-700'} leading-relaxed markdown-content`}>
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            h1: ({node, ...props}) => <h1 className={`text-xl font-bold mb-3 mt-4 ${darkMode ? 'text-white' : 'text-slate-900'}`} {...props} />,
-                            h2: ({node, ...props}) => <h2 className={`text-lg font-bold mb-2 mt-3 ${darkMode ? 'text-white' : 'text-slate-900'}`} {...props} />,
-                            h3: ({node, ...props}) => <h3 className={`text-base font-semibold mb-2 mt-2 ${darkMode ? 'text-gray-200' : 'text-slate-800'}`} {...props} />,
-                            h4: ({node, ...props}) => <h4 className={`text-sm font-semibold mb-1 mt-2 ${darkMode ? 'text-gray-200' : 'text-slate-800'}`} {...props} />,
-                            p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} />,
-                            ul: ({node, ...props}) => <ul className="list-disc list-inside mb-3 space-y-1" {...props} />,
-                            ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-3 space-y-1" {...props} />,
-                            li: ({node, ...props}) => <li className="ml-2" {...props} />,
-                            strong: ({node, ...props}) => <strong className={`font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`} {...props} />,
-                            em: ({node, ...props}) => <em className="italic" {...props} />,
-                            code: ({node, ...props}) => <code className={`px-1 py-0.5 rounded text-xs ${darkMode ? 'bg-slate-800 text-blue-300' : 'bg-slate-200 text-blue-700'}`} {...props} />,
-                            blockquote: ({node, ...props}) => <blockquote className={`border-l-4 pl-4 italic my-3 ${darkMode ? 'border-blue-500 text-gray-400' : 'border-blue-300 text-slate-600'}`} {...props} />,
-                          }}
-                        >
-                          {results.gpt5Analysis}
-                        </ReactMarkdown>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <div className={`grid grid-cols-4 gap-4 ${darkMode ? 'bg-slate-800/30' : 'bg-white/50'} backdrop-blur-lg rounded-2xl p-6 border ${darkMode ? 'border-blue-800' : 'border-blue-200'}`}>
-                  {[
-                    { label: 'Models Used', value: 'MedImageParse3D, GPT-4.1' },
-                    { label: 'Confidence Score', value: results.metrics.accuracy },
-                    { label: 'Processing Method', value: useMockData ? 'Demo Mode' : 'Azure AI Foundry' },
-                    { label: 'Compliance', value: 'Research Use Only' }
-                  ].map((stat, idx) => (
-                    <div key={idx} className="text-center">
-                      <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-600'} mb-1`}>
-                        {stat.label}
+                {uploadedImage && (
+                  <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+                    <CardHeader>
+                      <CardTitle className={darkMode ? 'text-white' : 'text-slate-900'}>
+                        3D Liver Visualization
+                      </CardTitle>
+                      <CardDescription className={darkMode ? 'text-gray-400' : 'text-slate-600'}>
+                        Interactive 3D rendering of liver anatomy
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Liver3DViewer 
+                        imageUrl={safeUploadedImage!} 
+                        overlayUrl={results.overlayImageUrl}
+                        darkMode={darkMode} 
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+
+                {results.demographics && (
+                  <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+                    <CardHeader>
+                      <CardTitle className={darkMode ? 'text-white' : 'text-slate-900'}>
+                        Patient Demographics
+                      </CardTitle>
+                      <CardDescription className={darkMode ? 'text-gray-400' : 'text-slate-600'}>
+                        Clinical study metadata from Kaggle liver disease dataset
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <DemoField 
+                          label="Patient ID" 
+                          value={results.demographics.patient_id} 
+                          darkMode={darkMode} 
+                        />
+                        <DemoField 
+                          label="Age" 
+                          value={`${results.demographics.age} years`} 
+                          darkMode={darkMode} 
+                        />
+                        <DemoField 
+                          label="Gender" 
+                          value={results.demographics.gender} 
+                          darkMode={darkMode} 
+                        />
+                        <DemoField 
+                          label="Ethnicity" 
+                          value={results.demographics.ethnicity} 
+                          darkMode={darkMode} 
+                        />
                       </div>
-                      <div className={`font-semibold text-xs ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                        {stat.value}
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+                  <CardHeader>
+                    <CardTitle className={`flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                      <Microscope className="w-5 h-5" />
+                      Liver Feature Classification
+                    </CardTitle>
+                    <CardDescription className={darkMode ? 'text-gray-400' : 'text-slate-600'}>
+                      MedImageParse3D feature detection results
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`p-4 rounded-lg mb-4 ${darkMode ? 'bg-blue-900/20 border border-blue-500/30' : 'bg-blue-50 border border-blue-200'}`}>
+                      <div className={`text-lg font-bold mb-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                        {results.embeddings.classification}
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                      {results.embeddings.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${darkMode ? 'bg-blue-400' : 'bg-blue-600'}`} />
+                          <span>{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+                  <CardHeader>
+                    <CardTitle className={`flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                      <Activity className="w-5 h-5" />
+                      Liver Tumor Segmentation
+                    </CardTitle>
+                    <CardDescription className={darkMode ? 'text-gray-400' : 'text-slate-600'}>
+                      3D volumetric segmentation analysis
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {results.segmentation.detected.map((item, idx) => (
+                        <div key={idx} className={`flex items-center justify-between p-3 rounded-lg ${
+                          darkMode ? 'bg-slate-900/50 border border-slate-700' : 'bg-slate-50 border border-slate-200'
+                        }`}>
+                          <span className={`flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                            <div className={`w-2 h-2 rounded-full ${darkMode ? 'bg-green-400' : 'bg-green-600'}`} />
+                            {item}
+                          </span>
+                          <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                            darkMode ? 'bg-green-900/50 text-green-400 border border-green-500/30' : 'bg-green-100 text-green-700 border border-green-200'
+                          }`}>
+                            Detected
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+                  <CardHeader>
+                    <CardTitle className={`flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                      <Brain className="w-5 h-5" />
+                      Two-Stage Clinical Analysis
+                    </CardTitle>
+                    <CardDescription className={darkMode ? 'text-gray-400' : 'text-slate-600'}>
+                      GPT-4.1 Clinical Analysis
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`prose max-w-none ${darkMode ? 'prose-invert' : ''}`}>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          h1: ({node, ...props}) => <h1 className={`text-xl font-bold mb-3 mt-4 ${darkMode ? 'text-white' : 'text-slate-900'}`} {...props} />,
+                          h2: ({node, ...props}) => <h2 className={`text-lg font-bold mb-2 mt-3 ${darkMode ? 'text-white' : 'text-slate-900'}`} {...props} />,
+                          h3: ({node, ...props}) => <h3 className={`text-base font-semibold mb-2 mt-2 ${darkMode ? 'text-gray-200' : 'text-slate-800'}`} {...props} />,
+                          h4: ({node, ...props}) => <h4 className={`text-sm font-semibold mb-1 mt-2 ${darkMode ? 'text-gray-200' : 'text-slate-800'}`} {...props} />,
+                          p: ({node, ...props}) => <p className={`mb-3 last:mb-0 ${darkMode ? 'text-gray-300' : 'text-slate-700'}`} {...props} />,
+                          ul: ({node, ...props}) => <ul className={`list-disc list-inside mb-3 space-y-1 ${darkMode ? 'text-gray-300' : 'text-slate-700'}`} {...props} />,
+                          ol: ({node, ...props}) => <ol className={`list-decimal list-inside mb-3 space-y-1 ${darkMode ? 'text-gray-300' : 'text-slate-700'}`} {...props} />,
+                          li: ({node, ...props}) => <li className={`ml-2 ${darkMode ? 'text-gray-300' : 'text-slate-700'}`} {...props} />,
+                          strong: ({node, ...props}) => <strong className={`font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`} {...props} />,
+                          em: ({node, ...props}) => <em className={`italic ${darkMode ? 'text-gray-300' : 'text-slate-700'}`} {...props} />,
+                          code: ({node, ...props}) => <code className={`px-1 py-0.5 rounded text-xs ${darkMode ? 'bg-slate-800 text-blue-300' : 'bg-slate-200 text-blue-700'}`} {...props} />,
+                          blockquote: ({node, ...props}) => <blockquote className={`border-l-4 pl-4 italic my-3 ${darkMode ? 'border-blue-500 text-gray-400' : 'border-blue-300 text-slate-600'}`} {...props} />,
+                        }}
+                      >
+                        {results.gpt5Analysis}
+                      </ReactMarkdown>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className={darkMode ? 'bg-gradient-to-br from-slate-800/50 to-blue-900/30 border-blue-500/30' : 'bg-gradient-to-br from-white to-blue-50 border-blue-200'}>
+                  <CardContent className="py-6">
+                    <div className="grid grid-cols-4 gap-6">
+                      {[
+                        { label: 'Models Used', value: 'MedImageParse3D, GPT-4.1', icon: Brain },
+                        { label: 'Confidence Score', value: results.metrics.accuracy, icon: CheckCircle2 },
+                        { label: 'Processing Method', value: useMockData ? 'Demo Mode' : 'Azure AI Foundry', icon: Zap },
+                        { label: 'Compliance', value: 'Research Use Only', icon: Activity }
+                      ].map((stat, idx) => (
+                        <div key={idx} className="text-center space-y-2">
+                          <stat.icon className={`h-6 w-6 mx-auto ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                          <div className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                            {stat.label}
+                          </div>
+                          <div className={`font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                            {stat.value}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="batch" className="mt-6">
+            <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+              <CardHeader>
+                <CardTitle className={darkMode ? 'text-white' : 'text-slate-900'}>
+                  Batch Processing
+                </CardTitle>
+                <CardDescription className={darkMode ? 'text-gray-400' : 'text-slate-600'}>
+                  Analyze up to 20 patients serially with comprehensive results dashboard
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {patients.length > 0 && (
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                      Select Patients for Batch Analysis (Hold Ctrl/Cmd for multiple)
+                    </label>
+                    <select
+                      multiple
+                      value={batchPatients}
+                      onChange={(e) => {
+                        const selected = Array.from(e.target.selectedOptions, option => option.value)
+                        if (selected.length <= 20) {
+                          setBatchPatients(selected)
+                        } else {
+                          alert('Maximum 20 patients per batch')
+                        }
+                      }}
+                      className={`w-full px-4 py-2 rounded-lg border h-64 ${
+                        darkMode 
+                          ? 'bg-slate-900 border-slate-700 text-white' 
+                          : 'bg-white border-slate-300 text-slate-900'
+                      }`}
+                    >
+                      {patients.map(patient => (
+                        <option key={patient.id} value={patient.id}>
+                          {patient.label} ({patient.id})
+                        </option>
+                      ))}
+                    </select>
+                    <p className={`text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                      {batchPatients.length} patient(s) selected
+                    </p>
+                  </div>
+                )}
+
+                <Button
+                  onClick={async () => {
+                    if (batchPatients.length === 0) {
+                      alert('Please select at least one patient')
+                      return
+                    }
+                    
+                    setBatchProcessing(true)
+                    setBatchResults([])
+                    
+                    try {
+                      const formData = new FormData()
+                      formData.append('patient_ids', batchPatients.join(','))
+                      formData.append('modality', selectedModality)
+                      
+                      const response = await fetch(`${API_URL}/api/analyze/batch`, {
+                        method: 'POST',
+                        body: formData
+                      })
+                      
+                      if (!response.ok) {
+                        throw new Error('Batch analysis failed')
+                      }
+                      
+                      const result = await response.json()
+                      if (result.success) {
+                        setBatchResults(result.results)
+                      }
+                    } catch (error) {
+                      console.error('Batch processing error:', error)
+                      alert('Batch processing failed. Please try again.')
+                    } finally {
+                      setBatchProcessing(false)
+                    }
+                  }}
+                  disabled={batchProcessing || batchPatients.length === 0}
+                  className={`w-full ${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+                  size="lg"
+                >
+                  {batchProcessing ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Processing {batchPatients.length} Patients...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="h-5 w-5 mr-2" />
+                      Start Batch Analysis
+                    </>
+                  )}
+                </Button>
+
+                {batchResults.length > 0 && (
+                  <div className="mt-8 space-y-6">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className={`${darkMode ? 'bg-blue-900/40' : 'bg-blue-100'} p-4 rounded-xl`}>
+                        <div className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                          {batchResults.length}
+                        </div>
+                        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                          Total Processed
+                        </div>
+                      </div>
+                      <div className={`${darkMode ? 'bg-green-900/40' : 'bg-green-100'} p-4 rounded-xl`}>
+                        <div className={`text-2xl font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                          {batchResults.filter(r => r.success).length}
+                        </div>
+                        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                          Successful
+                        </div>
+                      </div>
+                      <div className={`${darkMode ? 'bg-red-900/40' : 'bg-red-100'} p-4 rounded-xl`}>
+                        <div className={`text-2xl font-bold ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
+                          {batchResults.filter(r => !r.success).length}
+                        </div>
+                        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                          Failed
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      {batchResults.map((result, idx) => (
+                        <Card key={idx} className={darkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-white border-slate-200'}>
+                          <CardHeader>
+                            <CardTitle className={`text-sm flex items-center justify-between ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                              <span>{result.patient_id}</span>
+                              {result.success ? (
+                                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <span className="text-red-500 text-xs">Failed</span>
+                              )}
+                            </CardTitle>
+                          </CardHeader>
+                          {result.success && result.data && (
+                            <CardContent className="space-y-2">
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                                    Original
+                                  </p>
+                                  <img
+                                    src={safeUploadedImage || ''}
+                                    alt="Original"
+                                    className="w-full h-32 object-cover rounded"
+                                  />
+                                </div>
+                                <div>
+                                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                                    Segmented
+                                  </p>
+                                  <img
+                                    src={result.data.overlayImageUrl || safeUploadedImage || ''}
+                                    alt="Segmented"
+                                    className="w-full h-32 object-cover rounded"
+                                  />
+                                </div>
+                              </div>
+                              <div className={`text-xs ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                                <p><strong>Classification:</strong> {result.data.embeddings.classification}</p>
+                                <p><strong>Accuracy:</strong> {result.data.metrics.accuracy}</p>
+                              </div>
+                            </CardContent>
+                          )}
+                          {!result.success && (
+                            <CardContent>
+                              <p className={`text-xs ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
+                                {result.error}
+                              </p>
+                            </CardContent>
+                          )}
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

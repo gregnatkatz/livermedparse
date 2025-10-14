@@ -8,20 +8,38 @@ A comprehensive medical imaging AI demonstration platform focused on liver disea
 
 This platform demonstrates advanced AI capabilities for liver disease detection and analysis using Microsoft Azure AI Foundry services integrated with MedImageParse3D for 3D liver segmentation and GPT-4.1 for clinical analysis.
 
-### Current Features (Implemented ✅)
+## ⚠️ IMPORTANT: Test Data Disclaimer
 
-- **Landing Page**: Professional entry point with Azure AI branding, spinning 3D liver model with highlighted tumor, and executive summary
+**THIS APPLICATION USES FICTITIOUS TEST DATA ONLY FROM PUBLICLY AVAILABLE KAGGLE DATASETS.**
+
+- **Dataset Source**: [Kaggle 3D Liver Tumor Segmentation Dataset](https://www.kaggle.com/datasets/gauravduttakiit/3d-liver-and-liver-tumor-segmentation)
+- **Patient Data**: 123 unique de-identified NIfTI volumes (liver_0.nii through liver_122.nii)
+- **Patient IDs**: P000 through P122 (fictitious identifiers for demonstration purposes)
+- **NO REAL PATIENT DATA**: All imaging data, demographics, and clinical information are synthetic or from public research datasets
+- **Research Use Only**: This platform is for research, education, and demonstration purposes only
+- **Not for Clinical Use**: NOT intended for clinical diagnosis, treatment decisions, or patient care without proper regulatory approval and validation
+
+All data has been de-identified and contains no HIPAA-protected health information. Any patient demographics or clinical information displayed in the application are randomly generated for demonstration purposes only.
+
+### Current Features (Fully Implemented ✅)
+
+- **Dashboard Home Screen** (Default Landing): Analytics-first interface with comprehensive charts showing:
+  - Total image analysis count and accuracy metrics
+  - Modality distribution (Liver MRI, CT, Ultrasound, Pathology)
+  - Disease classification breakdown with pie chart
+  - Accuracy trends over time with line graph
+- **Patient Selection by ID**: Select from 123 unique patients (P000-P122) mapped to Kaggle NIfTI dataset files
 - **Multi-Modal Image Analysis**: Support for Liver MRI, Liver CT, Ultrasound, and Pathology imaging
-- **Interactive 2D Image Viewer**: Interactive liver image viewer with zoom, rotate, pan, and reset controls
-- **Analytics Dashboard**: Comprehensive charts showing:
-  - Image modality distribution (bar chart)
-  - Disease type distribution (pie chart)
-  - Detection accuracy over time (line chart)
-  - Patient demographics summary
-- **Patient Demographics**: Integration of demographic data from Kaggle medical datasets
-- **Research Disclaimer**: Clear warnings on landing and dashboard pages
+- **Red Tumor Overlay Visualization**: Color-coded segmentation highlighting:
+  - **Bright red (RGB: 255, 0, 0)** for tumor regions
+  - Subtle red tint for liver parenchyma
+  - Grayscale base for original liver anatomy
+- **Batch Processing**: Analyze up to 20 patients serially with comprehensive results dashboard
+- **MedImageParse3D Integration**: Real Azure ML endpoint for 3D liver segmentation from NIfTI volumes
+- **GPT-4.1 Clinical Analysis**: AI-powered clinical insights and differential diagnosis
+- **Interactive 2D Image Viewer**: Zoom, rotate, pan, and reset controls
 - **Dark/Light Mode Toggle**: Responsive UI with theme support
-- **Mock AI Pipeline**: Complete simulation of Azure AI Foundry workflow ready for real endpoint integration
+- **Research Disclaimers**: Clear warnings throughout the application
 
 ### Tech Stack
 
@@ -43,61 +61,78 @@ This platform demonstrates advanced AI capabilities for liver disease detection 
 - Location: `/home/ubuntu/medical-ai-demo/data/kaggle/`
 - **Format**: NIfTI (.nii, .nii.gz) 3D volumes - fully compatible with MedImageParse3D for complete 3D volume analysis including tumor segmentation, size measurement, and staging
 
-## 🚀 Getting Started
+## 🚀 Environment Setup
 
 ### Prerequisites
 
 - Python 3.12+ (managed via pyenv)
 - Node.js 18+ (managed via nvm)
 - Poetry for Python dependency management
-- pnpm or npm for Node.js dependencies
+- npm for Node.js dependencies
 
-### Installation
+### Backend Setup
 
-1. **Clone the repository** (tomorrow after repo creation)
+1. Navigate to backend directory:
+   ```bash
+   cd backend
+   ```
 
-2. **Backend Setup:**
-```bash
-cd backend
-poetry install
-cp .env.example .env
-# Configure Azure credentials in .env
-poetry run fastapi dev app/main.py
-```
+2. Install dependencies:
+   ```bash
+   poetry install
+   ```
 
-3. **Frontend Setup:**
-```bash
-cd frontend
-npm install
-cp .env.example .env
-# Configure backend URL in .env
-npm run dev
-```
+3. Configure environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env` and fill in your Azure credentials:
+   - `AZURE_OPENAI_ENDPOINT`: Your Azure OpenAI resource endpoint
+   - `AZURE_OPENAI_API_KEY`: Your Azure OpenAI API key
+   - `AZURE_OPENAI_DEPLOYMENT_GPT41`: Your GPT-4.1 deployment name
+   - `MEDIMAGEPARSE3D_ENDPOINT`: Your MedImageParse3D Azure ML endpoint
+   - `MEDIMAGEPARSE3D_API_KEY`: Your MedImageParse3D API key
+   
+   **IMPORTANT**: Never commit `.env` files to the repository!
 
-4. **Access the application:**
-- Frontend: http://localhost:5173/
-- Backend API: http://localhost:8000/
-- API Docs: http://localhost:8000/docs
+4. Start the backend server:
+   ```bash
+   poetry run fastapi dev app/main.py
+   ```
 
-## 📊 Current Status
+### Frontend Setup
 
-### ✅ Completed (October 5, 2025)
+1. Navigate to frontend directory:
+   ```bash
+   cd frontend
+   ```
 
-- [x] FastAPI backend with mock Azure AI services
-- [x] React frontend with full navigation
-- [x] Landing page with spinning liver + tumor
-- [x] Analysis page with image upload
-- [x] Results page with 3D viewer, demographics, clinical analysis
-- [x] Analytics dashboard with 4 charts
-- [x] Azure AI logo integration
-- [x] Kaggle dataset download (2.8GB)
-- [x] Interactive 2D image viewer with zoom/rotate/pan controls
-- [x] Research disclaimers on all pages
-- [x] Dark mode support throughout
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-### 🔄 Ready for Tomorrow (October 6, 2025)
+3. Configure environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env`:
+   ```
+   VITE_API_URL=http://localhost:8000
+   ```
 
-The application is fully functional with mock endpoints and ready for Azure AI Foundry integration.
+4. Start the frontend development server:
+   ```bash
+   npm run dev
+   ```
+
+5. Access the application:
+   - Frontend: http://localhost:5173/
+   - Backend API: http://localhost:8000/
+   - API Docs: http://localhost:8000/docs
+
 
 ## 🤖 AI Models Architecture
 
@@ -125,129 +160,80 @@ GPT-4.1 → [Clinical Analysis & Report]
 Structured Output with Visualizations
 ```
 
-## 🔧 Next Steps: Azure AI Foundry Integration
+## 🧬 MedImageParse3D Integration
 
-### Tomorrow's Tasks (October 6, 2025)
+### Overview
+MedImageParse3D is Microsoft's state-of-the-art model for 3D volumetric segmentation of medical images, specifically optimized for CT and MRI scans.
 
-#### 1. Azure Resource Setup
-- [ ] Create Azure AI Foundry hub and project
-- [ ] Deploy required AI models:
-  - **MedImageParse3D**: Volumetric segmentation for 3D CT/MRI scans - critical for liver tumor segmentation and staging
-  - **GPT-4.1**: Clinical reasoning and comprehensive analysis
-- [ ] Obtain API keys and endpoint URLs
-- [ ] Configure RBAC permissions
+### Implementation Details
 
-#### 2. Backend Integration
+**Input Format**: NIfTI (.nii) volumes
+- The application uses the Kaggle 3D Liver Tumor Segmentation dataset
+- 123 unique liver scans (liver_0.nii through liver_122.nii)
+- Each scan is a 3D volume with dimensions typically 512×512×N slices
 
-**File to modify:** `backend/app/services.py`
+**Data Preprocessing**:
+1. Load NIfTI file using `nibabel`
+2. Compress with gzip (required by Azure ML endpoint)
+3. Encode to base64 for API transmission
+4. Send to MedImageParse3D endpoint with organ="liver"
 
-Replace the `MockAzureAIService` with `RealAzureAIService`:
+**Segmentation Output**:
+- Returns gzipped NIfTI mask as base64-encoded JSON
+- Mask values: 0 (background), 1 (liver parenchyma), 2 (tumor)
+- Decoded and converted to red overlay PNG for visualization
 
+**Red Overlay Generation**:
+- Decodes gzipped NIfTI segmentation mask
+- Applies bright red (RGB: 255, 0, 0) to tumor regions (mask value 2)
+- Applies subtle red tint to liver parenchyma (mask value 1)
+- Returns base64-encoded PNG for frontend display
+
+## 📊 Batch Processing
+
+### Current Implementation (Serial Processing)
+The application supports analyzing up to 20 patients serially:
+- Select multiple patients from dropdown (P000-P122)
+- Each patient is analyzed sequentially
+- Results displayed in a grid layout with original and segmented images
+- Processing time: ~2-3 seconds per patient
+
+### API Endpoint
 ```python
-# In backend/app/main.py
-# Change from:
-ai_service = MockAzureAIService()
+POST /api/analyze/batch
+Content-Type: multipart/form-data
 
-# To:
-ai_service = RealAzureAIService()
+patient_ids: "P000,P045,P100"  # Comma-separated patient IDs
+modality: "liver-mri"
 ```
 
-**Configuration needed in `.env`:**
-```bash
-# Azure AI Foundry
-AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
-AZURE_OPENAI_API_KEY=your-api-key
-AZURE_OPENAI_API_VERSION=2025-01-01-preview
-AZURE_OPENAI_DEPLOYMENT_GPT41=gpt-4.1
+### Optional Enhancement: Parallel Processing for Production
 
-# MedImageParse3D Model
-MEDIMAGEPARSE3D_ENDPOINT=https://your-endpoint.westus.inference.ml.azure.com/score
-MEDIMAGEPARSE3D_API_KEY=your-api-key
-```
+For production deployments requiring high throughput, batch processing can be parallelized:
 
-**Update `RealAzureAIService` class:**
+**Implementation Strategy:**
+1. **Azure Batch or Azure Functions**: Deploy MedImageParse3D calls as parallel functions
+2. **Queue-based Processing**: Use Azure Service Bus or Storage Queue for job management
+3. **Async/Await Pattern**: Utilize Python's `asyncio.gather()` for concurrent processing
+4. **Rate Limiting**: Implement throttling to respect Azure ML endpoint quotas
 
-The implementation exists in `backend/app/services.py` with:
-1. `_get_medimageparse3d_segmentation()` method - sends NIfTI volumes to Azure ML endpoint
-2. `_get_gpt_analysis()` method - uses GPT-4.1 for clinical insights
-3. Proper error handling and fallback to mock data
-4. Tested with real Azure endpoints
-
-#### 3. Endpoint Implementation Details
-
-**MedImageParse3D (3D Segmentation):**
+**Code Example** (not currently implemented):
 ```python
-async def _get_medimageparse3d_segmentation(self, modality: str) -> dict:
-    # Load NIfTI file from Kaggle dataset
-    nifti_path = "/path/to/liver.nii"
-    with open(nifti_path, 'rb') as f:
-        base64_nifti = base64.b64encode(f.read()).decode('utf-8')
-    
-    # Call Azure ML endpoint
-    async with aiohttp.ClientSession() as session:
-        response = await session.post(
-            MEDIMAGEPARSE3D_ENDPOINT,
-            json={
-                "input_data": {
-                    "columns": ["image", "text"],
-                    "index": [0],
-                    "data": [[base64_nifti, "liver"]]
-                }
-            },
-            headers={"Authorization": f"Bearer {API_KEY}"}
-        )
-    return await response.json()
+async def analyze_batch_parallel(patient_ids: List[str], modality: str):
+    tasks = [
+        analyze_image_by_patient(patient_id, modality)
+        for patient_id in patient_ids
+    ]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    return results
 ```
 
-**GPT-4.1 (Clinical Analysis):**
-```python
-async def _get_gpt_analysis(self, segmentation: dict, modality: str) -> str:
-    client = AzureOpenAI(
-        api_key=AZURE_OPENAI_API_KEY,
-        api_version="2025-01-01-preview",
-        azure_endpoint=AZURE_OPENAI_ENDPOINT
-    )
-    
-    response = client.chat.completions.create(
-        model="gpt-4.1",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are an expert radiologist assistant."
-            },
-            {
-                "role": "user",
-                "content": f"""Analyze these liver 3D segmentation results:
-                
-                Segmentation: {segmentation}
-                
-                Provide detailed clinical analysis including:
-                1. Clinical Findings
-                2. Differential Diagnosis
-                3. Recommendations
-                4. Confidence Assessment"""
-            }
-        ],
-        temperature=0.3
-    )
-    return response.choices[0].message.content
-```
+**Considerations**:
+- Monitor Azure ML endpoint rate limits and quotas
+- Implement exponential backoff for transient failures
+- Consider cost implications of parallel processing
+- Test with production load to determine optimal concurrency level
 
-#### 4. Testing Strategy
-
-1. **Unit Tests**: Test each AI service method independently
-2. **Integration Tests**: Test full pipeline with sample images
-3. **Performance Tests**: Measure response times and accuracy
-4. **Error Handling**: Verify graceful degradation
-
-#### 5. GitHub Repository (Completed October 5, 2025)
-
-- [x] Repository created: https://github.com/gregnatkatz/Medimage
-- [x] Code pushed to main branch with all implemented features
-- [x] Screenshots captured and documented
-- [x] Comprehensive README with Azure integration instructions
-
-**Ready for Tomorrow:** All code and documentation pushed to GitHub. Next session will focus on Azure AI Foundry endpoint integration.
 
 ## 📁 Project Structure
 
@@ -280,15 +266,19 @@ medical-ai-demo/
 
 ### Backend (http://localhost:8000)
 
-- `GET /health` - Health check
+- `GET /healthz` - Health check
 - `GET /api/config` - Get configuration
-- `POST /api/analyze` - Analyze medical image
-  - Accepts: `multipart/form-data` with image file and modality
-  - Returns: Embeddings, segmentation, GPT-5 analysis, metrics, demographics
-- `POST /api/upload-demo` - Load demo image
-  - Accepts: `application/json` with modality
-  - Returns: Demo image data
-- `GET /api/analytics` - Get analytics data
+- `GET /api/patients` - List available patients (P000-P122)
+- `POST /api/analyze` - Analyze medical image by patient ID or uploaded file
+  - Accepts: `multipart/form-data` with optional image file, modality, and patient_id
+  - Returns: Embeddings, segmentation, GPT-4.1 analysis, metrics, demographics
+- `POST /api/analyze/batch` - Batch analyze multiple patients serially
+  - Accepts: `multipart/form-data` with comma-separated patient_ids and modality
+  - Returns: Array of analysis results for each patient
+- `POST /api/upload-demo` - Load demo image from Kaggle dataset
+  - Accepts: `application/json` with modality and optional patient_id
+  - Returns: Demo image data from NIfTI file
+- `GET /api/analytics` - Get analytics data for dashboard
   - Returns: Total images, accuracy, distributions, demographics
 
 ## 🧪 Implementation Notes
@@ -320,21 +310,17 @@ medical-ai-demo/
 
 ## 📸 Screenshots
 
-### Landing Page
-![Landing Page](/home/ubuntu/screenshots/localhost_5173_205311.png)
-*Azure AI branded landing page with spinning 3D liver model and executive summary*
+### Dashboard (Default Home Screen)
+![Dashboard with Analytics](/home/ubuntu/screenshots/localhost_5173_175837.png)
+*Analytics-first dashboard showing total analyses, accuracy metrics, modality distribution, and disease classification*
 
-### Results - Liver Scan Visualization
-![Results with Visible Liver Medical Imaging Scan](/home/ubuntu/screenshots/localhost_5173_205037.png)
-*Results page showing **VISIBLE grayscale abdominal CT/MRI scan** displaying liver anatomy in the 3D Liver Visualization section, with processing metrics (2.3s, 92% accuracy, 3 AI models)*
+### Analysis with Patient Selection and Red Tumor Overlay
+![Analysis with Red Overlay](/home/ubuntu/screenshots/localhost_5173_175919.png)
+*Liver scan for Patient P045 showing bright red tumor segmentation overlay with GPT-4.1 clinical analysis*
 
-### Results - Complete Clinical Analysis
-![Clinical Analysis with Liver Scan](/home/ubuntu/screenshots/localhost_5173_205140.png)
-*Complete clinical analysis showing patient demographics (P0591, 41 years old, Male, African American), liver feature classification (Hepatocellular Carcinoma - Segment VII), tumor segmentation results (liver parenchyma, 3.2cm hepatic tumor, portal vein, hepatic veins all detected), and detailed GPT-5 clinical findings with differential diagnosis and treatment recommendations*
-
-### Analytics Dashboard
-![Analytics Dashboard](/home/ubuntu/screenshots/localhost_5173_205226.png)
-*Comprehensive analytics dashboard with modality distribution, disease types, accuracy over time, and demographics charts*
+### Batch Processing Interface
+![Batch Processing](/home/ubuntu/screenshots/localhost_5173_175754.png)
+*Batch processing UI for analyzing up to 20 patients serially with comprehensive results dashboard*
 
 ## ⚠️ Important Notes
 
@@ -352,9 +338,10 @@ This platform uses Kaggle medical imaging datasets for research and demonstratio
 ## 📚 References
 
 - [Azure AI Foundry Documentation](https://learn.microsoft.com/en-us/azure/ai-services/)
-- [MedImageParse3D Model](https://github.com/microsoft/healthcareai-examples/tree/main/azureml/medimageparse)
+- [MedImageParse3D Model Card](https://aka.ms/healthcare-ai-examples)
 - [Kaggle 3D Liver Tumor Dataset](https://www.kaggle.com/datasets/gauravduttakiit/3d-liver-and-liver-tumor-segmentation)
-- [CHAOS Challenge](https://chaos.grand-challenge.org/)
+- [NIfTI File Format Specification](https://nifti.nimh.nih.gov/)
+- [Azure Machine Learning Endpoints](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-deploy-online-endpoints)
 
 ## 👥 Team
 
@@ -369,4 +356,4 @@ This is a demonstration project. Check individual dataset licenses before use.
 
 **Link to Devin run:** https://app.devin.ai/sessions/ec1278d34fd54c969f493ec2abaa1fb8
 
-**Last Updated:** October 5, 2025
+**Last Updated:** October 14, 2025

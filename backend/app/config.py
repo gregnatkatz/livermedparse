@@ -28,6 +28,11 @@ class Settings:
     GPT41_ENDPOINT: str = os.getenv("GPT41_ENDPOINT", "")
     GPT41_API_KEY: str = os.getenv("GPT41_API_KEY", "")
     
+    GPT5_ENDPOINT: str = os.getenv("GPT5_ENDPOINT", "")
+    GPT5_API_KEY: str = os.getenv("GPT5_API_KEY", "")
+    DEEPSEEK_ENDPOINT: str = os.getenv("DEEPSEEK_ENDPOINT", "")
+    DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
+    
     MEDIMAGEPARSE3D_ENDPOINT: str = os.getenv("MEDIMAGEPARSE3D_ENDPOINT", "")
     MEDIMAGEPARSE3D_API_KEY: str = os.getenv("MEDIMAGEPARSE3D_API_KEY", "")
     

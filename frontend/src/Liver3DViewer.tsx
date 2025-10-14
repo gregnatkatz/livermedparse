@@ -3,10 +3,11 @@ import { ZoomIn, ZoomOut, RotateCw, Maximize2 } from 'lucide-react'
 
 interface Liver3DViewerProps {
   imageUrl: string
+  overlayUrl?: string
   darkMode: boolean
 }
 
-export default function Liver3DViewer({ imageUrl, darkMode }: Liver3DViewerProps) {
+export default function Liver3DViewer({ imageUrl, overlayUrl, darkMode }: Liver3DViewerProps) {
   const [zoom, setZoom] = useState(1)
   const [rotation, setRotation] = useState(0)
   const [pan, setPan] = useState({ x: 0, y: 0 })
@@ -57,7 +58,7 @@ export default function Liver3DViewer({ imageUrl, darkMode }: Liver3DViewerProps
         style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
       >
         <img
-          src={imageUrl}
+          src={overlayUrl || imageUrl}
           alt="Liver Medical Imaging Scan"
           className="max-w-full max-h-full object-contain transition-transform duration-200 select-none"
           style={{
@@ -66,6 +67,13 @@ export default function Liver3DViewer({ imageUrl, darkMode }: Liver3DViewerProps
           }}
           draggable={false}
         />
+        {overlayUrl && (
+          <div className={`absolute top-4 right-4 text-xs ${
+            darkMode ? 'text-red-400' : 'text-red-600'
+          } bg-black/50 backdrop-blur-sm px-2 py-1 rounded font-semibold`}>
+            🔴 Segmentation Overlay Active
+          </div>
+        )}
       </div>
       
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 bg-black/50 backdrop-blur-sm rounded-lg p-2">

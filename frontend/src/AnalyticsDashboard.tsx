@@ -3,7 +3,7 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 
 interface AnalyticsDashboardProps {
   darkMode: boolean
-  onNavigate: (page: 'landing' | 'analysis' | 'dashboard') => void
+  onNavigate: (page: 'analysis' | 'dashboard') => void
 }
 
 const modalityData = [
@@ -97,12 +97,11 @@ export default function AnalyticsDashboard({ darkMode, onNavigate }: AnalyticsDa
       <nav className={`border-b ${darkMode ? 'border-slate-700 bg-slate-800' : 'border-gray-200 bg-white'}`}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex gap-4">
           <button
-            onClick={() => onNavigate('landing')}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              darkMode ? 'hover:bg-slate-700 text-gray-300' : 'hover:bg-gray-100 text-slate-700'
+            className={`px-4 py-2 rounded-lg ${
+              darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
             }`}
           >
-            Home
+            Dashboard
           </button>
           <button
             onClick={() => onNavigate('analysis')}
@@ -111,13 +110,6 @@ export default function AnalyticsDashboard({ darkMode, onNavigate }: AnalyticsDa
             }`}
           >
             Analysis
-          </button>
-          <button
-            className={`px-4 py-2 rounded-lg ${
-              darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
-            }`}
-          >
-            Dashboard
           </button>
         </div>
       </nav>

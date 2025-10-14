@@ -36,7 +36,8 @@ async def get_config():
 @app.post("/api/analyze")
 async def analyze_image(
     image: UploadFile = File(...),
-    modality: str = Form(...)
+    modality: str = Form(...),
+    patient_id: Optional[str] = Form(None)
 ):
     """Analyze medical image using Azure AI models"""
     try:
@@ -49,7 +50,11 @@ async def analyze_image(
             raise HTTPException(status_code=400, detail="Image too large (max 50MB)")
         
         ai_service = get_ai_service()
-        result = await ai_service.analyze_image(image_data, modality)
+        
+        if patient_id:
+            result = await ai_service.analyze_image_by_patient(patient_id, modality)
+        else:
+            result = await ai_service.analyze_image(image_data, modality)
         
         return {
             "success": True,
@@ -62,7 +67,7 @@ async def analyze_image(
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 @app.post("/api/upload-demo")
-async def upload_demo_image(modality: str = Form(...)):
+async def upload_demo_image(modality: str = Form(...), patient_id: Optional[str] = Form(None)):
     """Load a demo image for the specified modality"""
     try:
         if modality not in ["liver-mri", "liver-ct", "ultrasound", "pathology"]:
@@ -75,11 +80,16 @@ async def upload_demo_image(modality: str = Form(...)):
         
         kaggle_data_path = Path(__file__).parent.parent.parent / "data" / "kaggle" / "liver-tumor" / "08-3D-Liver-Tumor-Segmentation" / "08-3D-Liver-Tumor-Segmentation" / "Task03_Liver_rs" / "images"
         
-        nifti_files = list(kaggle_data_path.glob("liver_*.nii"))
-        if not nifti_files:
-            raise HTTPException(status_code=404, detail="No liver scan files found in Kaggle dataset")
-        
-        nifti_file = nifti_files[0]
+        if patient_id:
+            patient_num = int(patient_id[1:])
+            nifti_file = kaggle_data_path / f"liver_{patient_num}.nii"
+            if not nifti_file.exists():
+                raise HTTPException(status_code=404, detail=f"Patient file not found: liver_{patient_num}.nii")
+        else:
+            nifti_files = list(kaggle_data_path.glob("liver_*.nii"))
+            if not nifti_files:
+                raise HTTPException(status_code=404, detail="No liver scan files found in Kaggle dataset")
+            nifti_file = nifti_files[0]
         
         nii_img = nib.load(str(nifti_file))
         data = nii_img.get_fdata()
@@ -136,3 +146,78 @@ async def get_analytics():
             {"month": "Jun", "accuracy": 96.5}
         ]
     }
+
+@app.get("/api/patients")
+async def list_patients():
+    """Get list of available patient IDs from NIfTI dataset"""
+    try:
+        from pathlib import Path
+        
+        nifti_dir = Path(__file__).parent.parent.parent / "data" / "kaggle" / "08-3D-Liver-Tumor-Segmentation" / "08-3D-Liver-Tumor-Segmentation" / "Task03_Liver_rs" / "images"
+        
+        if not nifti_dir.exists():
+            raise HTTPException(status_code=404, detail="Dataset directory not found")
+        
+        nifti_files = sorted(nifti_dir.glob("liver_*.nii"))
+        
+        patients = []
+        for f in nifti_files:
+            patient_num = f.stem.split('_')[1]
+            patients.append({
+                'id': f"P{int(patient_num):03d}",
+                'filename': f.name,
+                'label': f"Patient {patient_num}"
+            })
+        
+        return {
+            'success': True,
+            'patients': patients,
+            'total': len(patients)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list patients: {str(e)}")
+
+@app.post("/api/analyze/batch")
+async def analyze_batch(
+    patient_ids: str = Form(...),
+    modality: str = Form(...)
+):
+    """Analyze multiple patients in serial (batch processing)"""
+    try:
+        if modality not in ["liver-mri", "liver-ct", "ultrasound", "pathology"]:
+            raise HTTPException(status_code=400, detail="Invalid modality")
+        
+        ids = [id.strip() for id in patient_ids.split(',')]
+        
+        if len(ids) > 20:
+            raise HTTPException(status_code=400, detail="Maximum 20 patients per batch")
+        
+        ai_service = get_ai_service()
+        results = []
+        
+        for patient_id in ids:
+            try:
+                result = await ai_service.analyze_image_by_patient(patient_id, modality)
+                results.append({
+                    'patient_id': patient_id,
+                    'success': True,
+                    'data': result
+                })
+            except Exception as e:
+                results.append({
+                    'patient_id': patient_id,
+                    'success': False,
+                    'error': str(e)
+                })
+        
+        return {
+            'success': True,
+            'total': len(ids),
+            'completed': len([r for r in results if r['success']]),
+            'results': results
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Batch analysis failed: {str(e)}")

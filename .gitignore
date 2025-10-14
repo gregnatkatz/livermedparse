@@ -61,6 +61,7 @@ dist-ssr/
 .DS_Store
 
 # Data (large Kaggle datasets)
+data/
 data/kaggle/*.zip
 data/kaggle/*.tar.gz
 data/kaggle/**/volume-*
