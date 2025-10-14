@@ -221,6 +221,7 @@ class RealAzureAIService:
         try:
             import aiohttp
             import os
+            import gzip
             
             nifti_dir = "/home/ubuntu/medical-ai-demo/data/kaggle/08-3D-Liver-Tumor-Segmentation/08-3D-Liver-Tumor-Segmentation/Task03_Liver_rs/images"
             if not os.path.exists(nifti_dir):
@@ -234,7 +235,9 @@ class RealAzureAIService:
             
             with open(nifti_path, 'rb') as f:
                 nifti_data = f.read()
-                base64_nifti = base64.b64encode(nifti_data).decode('utf-8')
+            
+            gzipped_data = gzip.compress(nifti_data)
+            base64_nifti = base64.b64encode(gzipped_data).decode('utf-8')
             
             headers = {
                 "Content-Type": "application/json",
@@ -250,7 +253,7 @@ class RealAzureAIService:
             }
             
             print(f"✓ Calling MedImageParse3D endpoint: {settings.MEDIMAGEPARSE3D_ENDPOINT}")
-            print(f"✓ Using NIfTI file: {nifti_path} ({len(nifti_data)} bytes)")
+            print(f"✓ Using NIfTI file: {nifti_path} ({len(nifti_data)} bytes raw, {len(gzipped_data)} bytes gzipped)")
             print(f"✓ Request payload: organ='liver', base64_length={len(base64_nifti)}")
             
             async with aiohttp.ClientSession() as session:
