@@ -343,17 +343,6 @@ This platform uses Kaggle medical imaging datasets for research and demonstratio
 - [NIfTI File Format Specification](https://nifti.nimh.nih.gov/)
 - [Azure Machine Learning Endpoints](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-deploy-online-endpoints)
 
-## 👥 Team
 
-Requested by: Gregory Katz (@gregorykatz_microsoft)  
-Developed by: Devin AI
-
-## 📝 License
-
-This is a demonstration project. Check individual dataset licenses before use.
 
 ---
-
-**Link to Devin run:** https://app.devin.ai/sessions/ec1278d34fd54c969f493ec2abaa1fb8
-
-**Last Updated:** October 14, 2025
