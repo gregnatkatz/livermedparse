@@ -11,6 +11,8 @@ import { Progress } from '@/components/ui/progress'
 import Liver3DViewer from './Liver3DViewer'
 import LandingPage from './LandingPage'
 import AnalyticsDashboard from './AnalyticsDashboard'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -547,8 +549,26 @@ function App() {
                         <Brain className="w-4 h-4" />
                         Hepatology Clinical Analysis
                       </div>
-                      <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-slate-700'} whitespace-pre-line leading-relaxed`}>
-                        {results.gpt5Analysis}
+                      <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-slate-700'} leading-relaxed markdown-content`}>
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            h1: ({node, ...props}) => <h1 className={`text-xl font-bold mb-3 mt-4 ${darkMode ? 'text-white' : 'text-slate-900'}`} {...props} />,
+                            h2: ({node, ...props}) => <h2 className={`text-lg font-bold mb-2 mt-3 ${darkMode ? 'text-white' : 'text-slate-900'}`} {...props} />,
+                            h3: ({node, ...props}) => <h3 className={`text-base font-semibold mb-2 mt-2 ${darkMode ? 'text-gray-200' : 'text-slate-800'}`} {...props} />,
+                            h4: ({node, ...props}) => <h4 className={`text-sm font-semibold mb-1 mt-2 ${darkMode ? 'text-gray-200' : 'text-slate-800'}`} {...props} />,
+                            p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} />,
+                            ul: ({node, ...props}) => <ul className="list-disc list-inside mb-3 space-y-1" {...props} />,
+                            ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-3 space-y-1" {...props} />,
+                            li: ({node, ...props}) => <li className="ml-2" {...props} />,
+                            strong: ({node, ...props}) => <strong className={`font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`} {...props} />,
+                            em: ({node, ...props}) => <em className="italic" {...props} />,
+                            code: ({node, ...props}) => <code className={`px-1 py-0.5 rounded text-xs ${darkMode ? 'bg-slate-800 text-blue-300' : 'bg-slate-200 text-blue-700'}`} {...props} />,
+                            blockquote: ({node, ...props}) => <blockquote className={`border-l-4 pl-4 italic my-3 ${darkMode ? 'border-blue-500 text-gray-400' : 'border-blue-300 text-slate-600'}`} {...props} />,
+                          }}
+                        >
+                          {results.gpt5Analysis}
+                        </ReactMarkdown>
                       </div>
                     </div>
                   </CardContent>
