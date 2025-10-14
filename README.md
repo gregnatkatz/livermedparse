@@ -311,15 +311,15 @@ medical-ai-demo/
 ## 📸 Screenshots
 
 ### Dashboard (Default Home Screen)
-![Dashboard with Analytics](/home/ubuntu/screenshots/localhost_5173_175837.png)
+![Dashboard with Analytics](screenshots/dashboard.png)
 *Analytics-first dashboard showing total analyses, accuracy metrics, modality distribution, and disease classification*
 
 ### Analysis with Patient Selection and Red Tumor Overlay
-![Analysis with Red Overlay](/home/ubuntu/screenshots/localhost_5173_175919.png)
+![Analysis with Red Overlay](screenshots/analysis-red-overlay.png)
 *Liver scan for Patient P045 showing bright red tumor segmentation overlay with GPT-4.1 clinical analysis*
 
 ### Batch Processing Interface
-![Batch Processing](/home/ubuntu/screenshots/localhost_5173_175754.png)
+![Batch Processing](screenshots/batch-processing.png)
 *Batch processing UI for analyzing up to 20 patients serially with comprehensive results dashboard*
 
 ## ⚠️ Important Notes
