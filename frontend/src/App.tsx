@@ -101,9 +101,8 @@ function App() {
 
   const analysisSteps = [
     { name: 'Image Upload', status: 'complete' },
-    { name: 'Liver Feature Detection', status: analysisStep >= 1 ? 'complete' : 'pending' },
-    { name: 'Tumor Segmentation', status: analysisStep >= 2 ? 'complete' : 'pending' },
-    { name: 'Clinical Analysis', status: analysisStep >= 3 ? 'complete' : 'pending' }
+    { name: 'MedImageParse3D Segmentation', status: analysisStep >= 1 ? 'complete' : 'pending' },
+    { name: 'GPT-4.1 Clinical Analysis', status: analysisStep >= 2 ? 'complete' : 'pending' }
   ]
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,7 +166,7 @@ function App() {
       formData.append('image', blob, 'image.png')
       formData.append('modality', selectedModality)
 
-      for (let step = 1; step <= 3; step++) {
+      for (let step = 1; step <= 2; step++) {
         setAnalysisStep(step)
         await new Promise(resolve => setTimeout(resolve, 800))
       }
@@ -183,7 +182,7 @@ function App() {
 
       const result = await analysisResponse.json()
       setResults(result.data)
-      setAnalysisStep(4)
+      setAnalysisStep(3)
     } catch (error) {
       console.error('Analysis error:', error)
       alert('Error processing image. Please try again.')
@@ -557,7 +556,7 @@ function App() {
 
                 <div className={`grid grid-cols-4 gap-4 ${darkMode ? 'bg-slate-800/30' : 'bg-white/50'} backdrop-blur-lg rounded-2xl p-6 border ${darkMode ? 'border-blue-800' : 'border-blue-200'}`}>
                   {[
-                    { label: 'Models Used', value: 'MedImageInsight, BiomedParse, GPT-5' },
+                    { label: 'Models Used', value: 'MedImageParse3D, GPT-4.1' },
                     { label: 'Confidence Score', value: results.metrics.accuracy },
                     { label: 'Processing Method', value: useMockData ? 'Demo Mode' : 'Azure AI Foundry' },
                     { label: 'Compliance', value: 'Research Use Only' }

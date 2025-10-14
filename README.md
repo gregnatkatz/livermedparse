@@ -6,7 +6,7 @@ A comprehensive medical imaging AI demonstration platform focused on liver disea
 
 ## 🎯 Project Overview
 
-This platform demonstrates advanced AI capabilities for liver disease detection and analysis using Microsoft Azure AI Foundry services integrated with state-of-the-art medical imaging models including BiomedParse, MedImageParse, MedImageInsight, and GPT-5.
+This platform demonstrates advanced AI capabilities for liver disease detection and analysis using Microsoft Azure AI Foundry services integrated with MedImageParse3D for 3D liver segmentation and GPT-4.1 for clinical analysis.
 
 ### Current Features (Implemented ✅)
 
@@ -41,10 +41,7 @@ This platform demonstrates advanced AI capabilities for liver disease detection 
 - Kaggle datasets: 3D Liver Tumor Segmentation (2.2GB) + CHAOS T1&T2 (588MB)
 - Total: 2.8GB of liver disease imaging data
 - Location: `/home/ubuntu/medical-ai-demo/data/kaggle/`
-- **Format**: NIfTI (.nii, .nii.gz) 3D volumes - fully compatible with:
-  - **MedImageParse 2D**: Extract and analyze individual slices for pathology detection
-  - **MedImageParse 3D**: Process entire 3D volumes for tumor segmentation, size measurement, and staging
-  - Can be converted to PNG/JPEG for BiomedParse and other 2D models
+- **Format**: NIfTI (.nii, .nii.gz) 3D volumes - fully compatible with MedImageParse3D for complete 3D volume analysis including tumor segmentation, size measurement, and staging
 
 ## 🚀 Getting Started
 
@@ -104,43 +101,26 @@ The application is fully functional with mock endpoints and ready for Azure AI F
 
 ## 🤖 AI Models Architecture
 
-This platform integrates 5 specialized Azure AI models, each serving a distinct purpose in the liver disease analysis pipeline:
+This platform integrates 2 specialized Azure AI models for streamlined liver disease analysis:
 
-### 1. MedImageInsight
-**Purpose:** Image embedding and classification  
-**What it adds:** Generates semantic embeddings for medical images, enabling similarity search, image retrieval, and initial classification. Creates vector representations that capture anatomical and pathological features.  
-**Use case:** Quick screening, finding similar cases, initial triage of liver imaging studies
-
-### 2. MedImageParse (2D)
-**Purpose:** 2D medical image segmentation  
-**What it adds:** Specialized segmentation across multiple liver imaging modalities (MRI, CT, ultrasound, pathology). Accurately identifies and delineates liver structures, lesions, and anatomical boundaries in individual slices.  
-**Use case:** Slice-by-slice analysis, pathology detection in 2D images, detailed boundary identification
-
-### 3. MedImageParse 3D
+### 1. MedImageParse3D
 **Purpose:** Volumetric 3D segmentation  
-**What it adds:** Complete 3D volume analysis for CT/MRI scans. Critical for accurate tumor size measurement, volumetric assessment, staging, and surgical planning. Processes entire NIfTI volumes rather than individual slices.  
-**Use case:** 3D tumor reconstruction, volume calculation, preoperative planning, disease staging
+**What it adds:** Complete 3D volume analysis for CT/MRI scans. Critical for accurate tumor size measurement, volumetric assessment, staging, and surgical planning. Processes entire NIfTI volumes for comprehensive liver analysis.  
+**Use case:** 3D liver segmentation, tumor reconstruction, volume calculation, preoperative planning, disease staging
 
-### 4. BiomedParse
-**Purpose:** Unified detection, recognition, and segmentation  
-**What it adds:** Versatile model supporting 9 imaging modalities with combined object detection and segmentation. Can identify multiple anatomical structures and pathologies simultaneously with text-based prompts.  
-**Use case:** Multi-structure analysis, comprehensive organ assessment, flexible prompted segmentation
-
-### 5. GPT-5
+### 2. GPT-4.1
 **Purpose:** Clinical reasoning and analysis  
-**What it adds:** Advanced language model that synthesizes findings from all imaging models into comprehensive clinical reports. Provides differential diagnoses, confidence assessments, and recommended follow-up actions using state-of-the-art reasoning capabilities.  
+**What it adds:** Advanced language model that synthesizes 3D segmentation findings into comprehensive clinical reports. Provides differential diagnoses, confidence assessments, and recommended follow-up actions using state-of-the-art reasoning capabilities.  
 **Use case:** Clinical report generation, diagnostic reasoning, patient communication, decision support
 
 ### Integration Flow
 
 ```
-Input Image
+Input Image (NIfTI 3D Volume)
     ↓
-MedImageInsight → [Embeddings & Initial Classification]
+MedImageParse3D → [3D Liver Segmentation]
     ↓
-MedImageParse 2D/3D + BiomedParse → [Detailed Segmentation]
-    ↓
-GPT-5 → [Clinical Analysis & Report]
+GPT-4.1 → [Clinical Analysis & Report]
     ↓
 Structured Output with Visualizations
 ```
@@ -152,12 +132,8 @@ Structured Output with Visualizations
 #### 1. Azure Resource Setup
 - [ ] Create Azure AI Foundry hub and project
 - [ ] Deploy required AI models:
-  - **MedImageInsight**: Image embedding model for classification and similarity search
-  - **MedImageParse**: 2D segmentation across liver imaging modalities (MRI, CT, ultrasound, pathology)
-  - **MedImageParse 3D**: Volumetric segmentation for 3D CT/MRI scans - critical for tumor size/staging
-  - **BiomedParse**: Unified detection, recognition, and segmentation across 9 imaging modalities
-  - **CxrReportGen**: Automated chest X-ray report generation (optional for liver focus)
-  - **GPT-5**: Clinical reasoning and comprehensive analysis
+  - **MedImageParse3D**: Volumetric segmentation for 3D CT/MRI scans - critical for liver tumor segmentation and staging
+  - **GPT-4.1**: Clinical reasoning and comprehensive analysis
 - [ ] Obtain API keys and endpoint URLs
 - [ ] Configure RBAC permissions
 
@@ -181,65 +157,59 @@ ai_service = RealAzureAIService()
 # Azure AI Foundry
 AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
 AZURE_OPENAI_API_KEY=your-api-key
-AZURE_OPENAI_API_VERSION=2025-08-01
-AZURE_OPENAI_DEPLOYMENT_NAME=gpt-5-deployment
+AZURE_OPENAI_API_VERSION=2025-01-01-preview
+AZURE_OPENAI_DEPLOYMENT_GPT41=gpt-4.1
 
-# Medical Imaging Models
-AZURE_ML_ENDPOINT=https://your-workspace.azureml.net
-AZURE_ML_API_KEY=your-ml-api-key
-MEDIMAGEINSIGHT_ENDPOINT=medimageinsight-endpoint
-BIOMEDPARSE_ENDPOINT=biomedparse-endpoint
-MEDIMAGEPARSE_ENDPOINT=medimageparse-endpoint
-MEDIMAGEPARSE_3D_ENDPOINT=medimageparse-3d-endpoint
+# MedImageParse3D Model
+MEDIMAGEPARSE3D_ENDPOINT=https://your-endpoint.westus.inference.ml.azure.com/score
+MEDIMAGEPARSE3D_API_KEY=your-api-key
 ```
 
 **Update `RealAzureAIService` class:**
 
-The class skeleton already exists in `backend/app/services.py`. You need to:
-1. Implement `_call_medimageinsight()` method
-2. Implement `_call_biomedparse()` method  
-3. Implement `_call_gpt5()` method
-4. Add proper error handling and retries
-5. Test with real endpoints
+The implementation exists in `backend/app/services.py` with:
+1. `_get_medimageparse3d_segmentation()` method - sends NIfTI volumes to Azure ML endpoint
+2. `_get_gpt_analysis()` method - uses GPT-4.1 for clinical insights
+3. Proper error handling and fallback to mock data
+4. Tested with real Azure endpoints
 
 #### 3. Endpoint Implementation Details
 
-**MedImageInsight (Embeddings):**
+**MedImageParse3D (3D Segmentation):**
 ```python
-async def _call_medimageinsight(self, image_b64: str, modality: str) -> dict:
-    response = await self.ml_client.online_endpoints.invoke(
-        endpoint_name=self.config.medimageinsight_endpoint,
-        request_file={
-            "input_data": {
-                "columns": ["image", "text"],
-                "data": [[image_b64, f"{modality} medical image"]]
+async def _get_medimageparse3d_segmentation(self, modality: str) -> dict:
+    # Load NIfTI file from Kaggle dataset
+    nifti_path = "/path/to/liver.nii"
+    with open(nifti_path, 'rb') as f:
+        base64_nifti = base64.b64encode(f.read()).decode('utf-8')
+    
+    # Call Azure ML endpoint
+    async with aiohttp.ClientSession() as session:
+        response = await session.post(
+            MEDIMAGEPARSE3D_ENDPOINT,
+            json={
+                "input_data": {
+                    "columns": ["image", "text"],
+                    "index": [0],
+                    "data": [[base64_nifti, "liver"]]
+                }
             },
-            "params": {"get_scaling_factor": True}
-        }
-    )
-    return response
+            headers={"Authorization": f"Bearer {API_KEY}"}
+        )
+    return await response.json()
 ```
 
-**BiomedParse (Segmentation):**
+**GPT-4.1 (Clinical Analysis):**
 ```python
-async def _call_biomedparse(self, image_b64: str, prompt: str) -> dict:
-    response = await self.ml_client.online_endpoints.invoke(
-        endpoint_name=self.config.biomedparse_endpoint,
-        request_file={
-            "input_data": {
-                "columns": ["image", "text"],
-                "data": [[image_b64, prompt]]
-            }
-        }
+async def _get_gpt_analysis(self, segmentation: dict, modality: str) -> str:
+    client = AzureOpenAI(
+        api_key=AZURE_OPENAI_API_KEY,
+        api_version="2025-01-01-preview",
+        azure_endpoint=AZURE_OPENAI_ENDPOINT
     )
-    return response
-```
-
-**GPT-5 (Clinical Analysis):**
-```python
-async def _call_gpt5(self, embeddings: dict, segmentation: dict, modality: str) -> str:
-    response = await self.openai_client.chat.completions.create(
-        model=self.config.gpt5_deployment,
+    
+    response = client.chat.completions.create(
+        model="gpt-4.1",
         messages=[
             {
                 "role": "system",
@@ -247,17 +217,15 @@ async def _call_gpt5(self, embeddings: dict, segmentation: dict, modality: str) 
             },
             {
                 "role": "user",
-                "content": f"""Analyze these liver imaging findings:
+                "content": f"""Analyze these liver 3D segmentation results:
                 
-                Modality: {modality}
-                Embeddings: {embeddings}
                 Segmentation: {segmentation}
                 
                 Provide detailed clinical analysis including:
-                1. Key findings
-                2. Differential diagnosis
-                3. Recommended follow-up
-                4. Confidence levels"""
+                1. Clinical Findings
+                2. Differential Diagnosis
+                3. Recommendations
+                4. Confidence Assessment"""
             }
         ],
         temperature=0.3
@@ -384,8 +352,7 @@ This platform uses Kaggle medical imaging datasets for research and demonstratio
 ## 📚 References
 
 - [Azure AI Foundry Documentation](https://learn.microsoft.com/en-us/azure/ai-services/)
-- [MedImageInsight Model](https://azure.microsoft.com/en-us/products/ai-services/ai-foundry)
-- [BiomedParse Paper](https://arxiv.org/abs/2405.12971)
+- [MedImageParse3D Model](https://github.com/microsoft/healthcareai-examples/tree/main/azureml/medimageparse)
 - [Kaggle 3D Liver Tumor Dataset](https://www.kaggle.com/datasets/gauravduttakiit/3d-liver-and-liver-tumor-segmentation)
 - [CHAOS Challenge](https://chaos.grand-challenge.org/)
 

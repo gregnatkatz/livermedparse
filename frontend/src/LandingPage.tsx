@@ -57,11 +57,11 @@ export default function LandingPage({ darkMode, onEnter }: LandingPageProps) {
           </p>
           <ul className="list-disc list-inside space-y-2 ml-4">
             <li>Multi-modal liver imaging analysis (MRI, CT, Ultrasound)</li>
-            <li>Advanced tumor detection and segmentation using BiomedParse and MedImageParse</li>
+            <li>Advanced 3D tumor detection and segmentation using MedImageParse3D</li>
             <li>Interactive 3D visualization of liver structures</li>
             <li>Comprehensive analytics dashboard with accuracy metrics</li>
             <li>Patient demographics integration from Kaggle medical datasets</li>
-            <li>Real-time AI-powered clinical insights via GPT-5</li>
+            <li>Real-time AI-powered clinical insights via GPT-4.1</li>
           </ul>
           <p>
             <strong>Dataset:</strong> 1000+ liver disease images from Kaggle medical imaging datasets, 
