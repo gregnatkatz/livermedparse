@@ -277,6 +277,8 @@ async def get_hip_ct_images():
 @app.get("/api/hip/demo-data")
 async def get_hip_demo_data():
     """Get pre-loaded hip demo data for fast display"""
+    import random
+    
     return {
         'patient_id': 'H001',
         'segmentation': {
@@ -286,6 +288,14 @@ async def get_hip_demo_data():
             'pelvis_accuracy': 97.1,
             'acetabulum_accuracy': 95.8
         },
+        'demographics': {
+            'patient_id': 'H001',
+            'age': 68,
+            'gender': 'Male',
+            'bmi': 28.3,
+            'medical_history': 'History of osteoarthritis, hypertension controlled with medication'
+        },
+        'gpt41Analysis': None,  # Will be populated by live analysis
         'implantSizing': {
             'femoral_component': 'Size 4',
             'acetabular_component': 'Size 3',

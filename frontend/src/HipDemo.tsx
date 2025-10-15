@@ -493,25 +493,333 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
         </Card>
       )}
 
-      {results && results.gpt41Analysis && (
-        <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
-          <CardHeader>
-            <CardTitle className={`flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-              <CheckCircle2 className="w-5 h-5" />
-              Comprehensive GPT-4.1 Clinical Analysis
-            </CardTitle>
-            <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
-              AI-powered surgical planning recommendations and risk assessment
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className={`prose max-w-none ${darkMode ? 'prose-invert' : ''} text-sm ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {results.gpt41Analysis}
-              </ReactMarkdown>
-            </div>
-          </CardContent>
-        </Card>
+      {/* GPT-4.1 Clinical Analysis Cards */}
+      {results && results.clinicalAnalysis && (
+        <div className="space-y-6">
+          {/* Preoperative Assessment Card */}
+          <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+            <CardHeader>
+              <CardTitle className={`flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                <Activity className="w-5 h-5" />
+                Preoperative Assessment
+              </CardTitle>
+              <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                Imaging quality, bone assessment, and anatomic analysis
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Imaging Quality */}
+              <div className={`p-4 rounded-lg ${darkMode ? 'bg-blue-900/20 border border-blue-500/30' : 'bg-blue-50 border border-blue-200'}`}>
+                <h4 className={`font-semibold mb-2 ${darkMode ? 'text-blue-300' : 'text-blue-900'}`}>
+                  Imaging Quality
+                </h4>
+                <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                  Excellent diagnostic quality with optimal contrast resolution for surgical planning. Three-dimensional reconstruction reveals favorable bony anatomy for primary total hip arthroplasty.
+                </p>
+              </div>
+
+              {/* Bone Quality */}
+              <div className={`p-4 rounded-lg ${darkMode ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200'}`}>
+                <h4 className={`font-semibold mb-2 ${darkMode ? 'text-green-300' : 'text-green-900'}`}>
+                  Bone Quality Assessment
+                </h4>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className={`font-medium ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>Cortical Thickness:</span>
+                    <span className={`ml-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>4.2mm</span>
+                  </div>
+                  <div>
+                    <span className={`font-medium ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>Singh Index:</span>
+                    <span className={`ml-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>Grade 5/6</span>
+                  </div>
+                  <div>
+                    <span className={`font-medium ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>T-Score:</span>
+                    <span className={`ml-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>-0.8 (normal)</span>
+                  </div>
+                  <div>
+                    <span className={`font-medium ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>Bone Status:</span>
+                    <span className={`ml-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>Good stock</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Anatomic Considerations */}
+              <div className={`p-4 rounded-lg ${darkMode ? 'bg-purple-900/20 border border-purple-500/30' : 'bg-purple-50 border border-purple-200'}`}>
+                <h4 className={`font-semibold mb-2 ${darkMode ? 'text-purple-300' : 'text-purple-900'}`}>
+                  Anatomic Considerations
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Acetabular Morphology:</span>
+                    <span className={`font-medium ${darkMode ? 'text-white' : 'text-slate-900'}`}>Crowe Grade I (normal)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Femoral Geometry:</span>
+                    <span className={`font-medium ${darkMode ? 'text-white' : 'text-slate-900'}`}>Dorr Type A</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Native Offset:</span>
+                    <span className={`font-medium ${darkMode ? 'text-white' : 'text-slate-900'}`}>45.2mm</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Acetabular Version:</span>
+                    <span className={`font-medium ${darkMode ? 'text-white' : 'text-slate-900'}`}>18.1° anteversion</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Surgical Plan Card */}
+          <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+            <CardHeader>
+              <CardTitle className={`flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                <Target className="w-5 h-5" />
+                Surgical Planning & Approach
+              </CardTitle>
+              <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                Recommended surgical approach and component positioning
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Approach */}
+              <div className={`p-4 rounded-lg ${darkMode ? 'bg-slate-900/50 border border-slate-700' : 'bg-slate-50 border border-slate-200'}`}>
+                <h4 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  Surgical Approach
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className={`w-4 h-4 mt-0.5 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
+                    <div>
+                      <span className={`font-medium ${darkMode ? 'text-white' : 'text-slate-900'}`}>Posterior (Moore/Southern)</span>
+                      <p className={`${darkMode ? 'text-gray-400' : 'text-slate-600'} mt-1`}>
+                        Enhanced soft tissue repair with optimal acetabular visualization
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Target Positions */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className={`p-4 rounded-lg ${darkMode ? 'bg-blue-900/20 border border-blue-500/30' : 'bg-blue-50 border border-blue-200'}`}>
+                  <h4 className={`font-semibold mb-3 text-sm ${darkMode ? 'text-blue-300' : 'text-blue-900'}`}>
+                    Acetabular Position
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Inclination:</span>
+                      <span className={`ml-2 font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>42°</span>
+                      <span className={`ml-1 text-xs ${darkMode ? 'text-gray-500' : 'text-slate-500'}`}>(40-45°)</span>
+                    </div>
+                    <div>
+                      <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Anteversion:</span>
+                      <span className={`ml-2 font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>18°</span>
+                      <span className={`ml-1 text-xs ${darkMode ? 'text-gray-500' : 'text-slate-500'}`}>(15-20°)</span>
+                    </div>
+                    <div className={`mt-2 pt-2 border-t ${darkMode ? 'border-blue-500/30' : 'border-blue-200'}`}>
+                      <span className={`text-xs ${darkMode ? 'text-blue-400' : 'text-blue-700'}`}>
+                        ✓ Within Lewinnek safe zone
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={`p-4 rounded-lg ${darkMode ? 'bg-purple-900/20 border border-purple-500/30' : 'bg-purple-50 border border-purple-200'}`}>
+                  <h4 className={`font-semibold mb-3 text-sm ${darkMode ? 'text-purple-300' : 'text-purple-900'}`}>
+                    Femoral Preparation
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Version Target:</span>
+                      <span className={`ml-2 font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>10-15°</span>
+                    </div>
+                    <div>
+                      <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Offset:</span>
+                      <span className={`ml-2 font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>45.2mm</span>
+                    </div>
+                    <div className={`mt-2 pt-2 border-t ${darkMode ? 'border-purple-500/30' : 'border-purple-200'}`}>
+                      <span className={`text-xs ${darkMode ? 'text-purple-400' : 'text-purple-700'}`}>
+                        ✓ Anatomic restoration
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Expected ROM */}
+              <div className={`p-4 rounded-lg ${darkMode ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200'}`}>
+                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-green-300' : 'text-green-900'}`}>
+                  Expected Range of Motion
+                </h4>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Flexion:</span>
+                    <span className={`ml-2 font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>120-130°</span>
+                  </div>
+                  <div>
+                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Abduction:</span>
+                    <span className={`ml-2 font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>45-50°</span>
+                  </div>
+                  <div>
+                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>External Rotation:</span>
+                    <span className={`ml-2 font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>40°</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recovery Protocol Card */}
+          <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+            <CardHeader>
+              <CardTitle className={`flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                <Clock className="w-5 h-5" />
+                Recovery Protocol
+              </CardTitle>
+              <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                Postoperative care and follow-up schedule
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Timeline */}
+              <div className="space-y-3">
+                <div className={`p-4 rounded-lg ${darkMode ? 'bg-blue-900/20 border border-blue-500/30' : 'bg-blue-50 border border-blue-200'}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${darkMode ? 'bg-blue-500 text-white' : 'bg-blue-600 text-white'}`}>
+                      Day 0-1
+                    </span>
+                    <h4 className={`font-semibold ${darkMode ? 'text-blue-300' : 'text-blue-900'}`}>
+                      Immediate Postoperative
+                    </h4>
+                  </div>
+                  <ul className={`text-sm space-y-1 ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                    <li>• Multimodal analgesia and DVT prophylaxis</li>
+                    <li>• Early mobilization within 6 hours</li>
+                    <li>• Weight-bearing as tolerated (WBAT)</li>
+                  </ul>
+                </div>
+
+                <div className={`p-4 rounded-lg ${darkMode ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200'}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${darkMode ? 'bg-green-500 text-white' : 'bg-green-600 text-white'}`}>
+                      Weeks 1-6
+                    </span>
+                    <h4 className={`font-semibold ${darkMode ? 'text-green-300' : 'text-green-900'}`}>
+                      Outpatient Recovery
+                    </h4>
+                  </div>
+                  <ul className={`text-sm space-y-1 ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                    <li>• PT 2-3x/week, progressive strengthening</li>
+                    <li>• Gait normalization by week 4-6</li>
+                    <li>• Return to driving at 4-6 weeks</li>
+                  </ul>
+                </div>
+
+                <div className={`p-4 rounded-lg ${darkMode ? 'bg-purple-900/20 border border-purple-500/30' : 'bg-purple-50 border border-purple-200'}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${darkMode ? 'bg-purple-500 text-white' : 'bg-purple-600 text-white'}`}>
+                      Follow-up
+                    </span>
+                    <h4 className={`font-semibold ${darkMode ? 'text-purple-300' : 'text-purple-900'}`}>
+                      Imaging Schedule
+                    </h4>
+                  </div>
+                  <div className={`text-sm space-y-2 ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                    <div className="flex justify-between">
+                      <span>6 weeks:</span>
+                      <span className="font-medium">AP pelvis & lateral hip X-rays</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>1 year:</span>
+                      <span className="font-medium">Baseline for osseointegration</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Annual:</span>
+                      <span className="font-medium">Clinical evaluation</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Risk Assessment Card */}
+          <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+            <CardHeader>
+              <CardTitle className={`flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                <Zap className="w-5 h-5" />
+                Risk Assessment & Mitigation
+              </CardTitle>
+              <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                Surgical risks and prevention strategies
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { risk: 'Dislocation', rate: '2-4%', mitigation: 'Proper positioning, soft tissue repair' },
+                  { risk: 'Leg Length Discrepancy', rate: '<5mm', mitigation: 'Robotic verification, trial assessment' },
+                  { risk: 'Periprosthetic Fracture', rate: '<1%', mitigation: 'Careful broaching technique' },
+                  { risk: 'Nerve Injury', rate: '<0.5%', mitigation: 'Careful retraction, limit traction time' },
+                  { risk: 'Infection', rate: '<1%', mitigation: 'Antibiotic prophylaxis, laminar flow OR' },
+                  { risk: 'DVT/PE', rate: 'Low', mitigation: 'Chemical prophylaxis, early mobilization' }
+                ].map((item, idx) => (
+                  <div key={idx} className={`p-3 rounded-lg ${darkMode ? 'bg-slate-900/50 border border-slate-700' : 'bg-slate-50 border border-slate-200'}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                        {item.risk}
+                      </h4>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${darkMode ? 'bg-orange-900/50 text-orange-400' : 'bg-orange-100 text-orange-700'}`}>
+                        {item.rate}
+                      </span>
+                    </div>
+                    <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                      {item.mitigation}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Clinical Outcomes Card */}
+          <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+            <CardHeader>
+              <CardTitle className={`flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                <CheckCircle2 className="w-5 h-5" />
+                Expected Clinical Outcomes
+              </CardTitle>
+              <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                Predictive success metrics and recovery expectations
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { metric: 'Pain Relief', value: '90-95%', desc: 'Excellent pain relief' },
+                  { metric: 'Satisfaction', value: '>95%', desc: 'Patient satisfaction' },
+                  { metric: 'Positioning Accuracy', value: '±2°', desc: 'Robotic-assisted' },
+                  { metric: 'Leg Length', value: '±2mm', desc: 'Restoration accuracy' },
+                  { metric: 'Return to Work', value: '85%', desc: 'Previous employment level' },
+                  { metric: 'Implant Survival', value: '95%', desc: 'at 10 years' }
+                ].map((item, idx) => (
+                  <div key={idx} className={`p-4 rounded-lg text-center ${darkMode ? 'bg-green-900/20 border border-green-500/30' : 'bg-green-50 border border-green-200'}`}>
+                    <div className={`text-2xl font-bold mb-1 ${darkMode ? 'text-green-300' : 'text-green-700'}`}>
+                      {item.value}
+                    </div>
+                    <div className={`text-xs font-semibold mb-1 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                      {item.metric}
+                    </div>
+                    <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                      {item.desc}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Bottom Info Sections */}

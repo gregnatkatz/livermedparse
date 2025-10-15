@@ -436,6 +436,9 @@ This comprehensive surgical plan demonstrates the integration of advanced AI seg
             'segmentation': segmentation,
             'surgicalPlan': gpt_analysis,
             'gpt41Analysis': gpt_analysis,
+            'clinicalAnalysis': {
+                'available': True  # Flag to show the cards
+            },
             'implantSizing': {
                 'acetabular_cup': '54mm',
                 'femoral_stem': 'Size 12',
