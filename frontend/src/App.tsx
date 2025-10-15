@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import Liver3DViewer from './Liver3DViewer'
 import AnalyticsDashboard from './AnalyticsDashboard'
+import HipDemo from './HipDemo'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -73,6 +74,7 @@ interface BatchResult {
 function App() {
   const [darkMode, setDarkMode] = useState(true)
   const [currentPage, setCurrentPage] = useState<Page>('dashboard')
+  const [selectedOrgan, setSelectedOrgan] = useState<'liver' | 'hip'>('liver')
   const [selectedModality, setSelectedModality] = useState('liver-mri')
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
@@ -262,7 +264,7 @@ function App() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className={`text-4xl font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-            Liver Disease Imaging AI Platform
+            MedParse - Multi-Organ AI Platform
           </h1>
           <p className={`text-lg mt-2 ${darkMode ? 'text-blue-300' : 'text-blue-600'}`}>
             Powered by Azure AI Foundry and Microsoft Healthcare AI Models
@@ -279,6 +281,20 @@ function App() {
             Not intended for clinical use without proper regulatory approval.
           </AlertDescription>
         </Alert>
+
+        {/* Organ Selector Tabs */}
+        <Tabs value={selectedOrgan} onValueChange={(value) => setSelectedOrgan(value as 'liver' | 'hip')} className="mb-6">
+          <TabsList className={`grid w-full grid-cols-2 ${darkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+            <TabsTrigger value="liver" className={darkMode ? 'data-[state=active]:bg-blue-900' : ''}>
+              Liver Disease Analysis
+            </TabsTrigger>
+            <TabsTrigger value="hip" className={darkMode ? 'data-[state=active]:bg-blue-900' : ''}>
+              Hip Replacement Planning
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="liver" className="mt-6">
+            {/* Existing Liver Content */}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
           {modalities.map((modality) => (
@@ -926,6 +942,12 @@ function App() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+        </Tabs>
+          </TabsContent>
+
+          <TabsContent value="hip" className="mt-6">
+            <HipDemo darkMode={darkMode} />
           </TabsContent>
         </Tabs>
       </div>

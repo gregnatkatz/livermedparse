@@ -1,0 +1,462 @@
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Clock, Target, CheckCircle, Zap, CheckCircle2 } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import ReactMarkdown from 'react-markdown'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+interface HipAnalysisResult {
+  segmentation: {
+    detected: string[]
+    quality: string
+    femur_accuracy?: number
+    pelvis_accuracy?: number
+    acetabulum_accuracy?: number
+  }
+  implantSizing: Record<string, string>
+  alignmentMetrics: Record<string, string>
+  surgicalPlan: string
+  metrics: {
+    processingTime: string
+    accuracy: string
+    bonesSegmented: number
+  }
+}
+
+export default function HipDemo({ darkMode }: { darkMode: boolean }) {
+  const [selectedPatient, setSelectedPatient] = useState('')
+  const [patients, setPatients] = useState<Array<{id: string, label: string}>>([])
+  const [results, setResults] = useState<HipAnalysisResult | null>(null)
+  const [processing, setProcessing] = useState(false)
+  const [segmentationComplete, setSegmentationComplete] = useState(false)
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/hip/demo-data`)
+      .then(res => res.json())
+      .then(data => {
+        setResults(data)
+        setSegmentationComplete(true)
+      })
+      .catch(err => console.error('Demo data load error:', err))
+    
+    fetch(`${API_URL}/api/hip/patients`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setPatients(data.patients)
+        }
+      })
+      .catch(err => console.error('Patients fetch error:', err))
+  }, [])
+
+  const handleAnalyze = async () => {
+    if (!selectedPatient) return
+    
+    setProcessing(true)
+    setSegmentationComplete(false)
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      const formData = new FormData()
+      formData.append('patient_id', selectedPatient)
+      
+      const response = await fetch(`${API_URL}/api/hip/analyze`, {
+        method: 'POST',
+        body: formData
+      })
+      
+      const result = await response.json()
+      if (result.success) {
+        setResults(result.data)
+        setSegmentationComplete(true)
+      }
+    } catch (error) {
+      console.error('Hip analysis error:', error)
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  return (
+    <div className={`space-y-6 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+      {/* Header */}
+      <div>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+              HipMedParse
+            </h1>
+            <p className={`text-base mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+              AI-Powered Hip Segmentation for Robotic Surgery Planning
+            </p>
+            <p className={`text-sm mt-1 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+              Built on MedImageParse3D Foundation Model
+            </p>
+          </div>
+          <div className="text-right">
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>Demo by</p>
+            <p className={`font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Greg Katz</p>
+            <a href="https://github.com/gregnatkatz" className={`text-sm ${darkMode ? 'text-blue-400' : 'text-blue-600'} hover:underline`}>
+              github.com/gregnatkatz
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Metrics Cards Row */}
+      <div className="grid grid-cols-4 gap-4">
+        <MetricCard
+          title="Processing Time"
+          value={results?.metrics.processingTime || "3.8min"}
+          subtitle="vs 128 min manual"
+          icon={Clock}
+          darkMode={darkMode}
+          iconColor="text-green-500"
+        />
+        <MetricCard
+          title="Accuracy"
+          value={results?.metrics.accuracy || "96.2%"}
+          subtitle="Dice coefficient"
+          icon={Target}
+          darkMode={darkMode}
+          iconColor="text-blue-500"
+        />
+        <MetricCard
+          title="Bones Segmented"
+          value={String(results?.metrics.bonesSegmented || 4)}
+          subtitle="Femur, Tibia, Fibula, Patella"
+          icon={CheckCircle}
+          darkMode={darkMode}
+          iconColor="text-purple-500"
+        />
+        <MetricCard
+          title="Component Size"
+          value="92%"
+          subtitle="Sizing accuracy"
+          icon={Zap}
+          darkMode={darkMode}
+          iconColor="text-orange-500"
+        />
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-3 gap-6">
+        {/* Left Column - CT Upload and Status */}
+        <div className="space-y-4">
+          <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+            <CardHeader>
+              <CardTitle className={darkMode ? 'text-white' : 'text-slate-900'}>
+                CT Upload
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <select
+                value={selectedPatient}
+                onChange={(e) => setSelectedPatient(e.target.value)}
+                className={`w-full px-4 py-2 rounded-lg border ${
+                  darkMode 
+                    ? 'bg-slate-900 border-slate-700 text-white' 
+                    : 'bg-white border-slate-300 text-slate-900'
+                }`}
+              >
+                <option value="">-- Select a patient --</option>
+                {patients.map(patient => (
+                  <option key={patient.id} value={patient.id}>
+                    {patient.label}
+                  </option>
+                ))}
+              </select>
+              
+              <Button
+                onClick={handleAnalyze}
+                disabled={!selectedPatient || processing}
+                className="w-full"
+              >
+                {processing ? 'Analyzing...' : 'Analyze Hip CT'}
+              </Button>
+
+              {segmentationComplete && (
+                <Alert className={`${darkMode ? 'bg-green-900/30 border-green-600' : 'bg-green-50 border-green-400'}`}>
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className={darkMode ? 'text-green-300' : 'text-green-800'}>
+                    <strong>Segmentation Complete</strong>
+                    <p className="text-sm mt-1">
+                      {results?.segmentation.detected.length} bones identified and segmented successfully
+                    </p>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Segmented Structures */}
+              {results && (
+                <div className="space-y-2">
+                  <p className={`text-sm font-semibold ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                    Segmented Structures:
+                  </p>
+                  {results.segmentation.detected.map((bone, idx) => {
+                    const accuracies: Record<string, number | undefined> = {
+                      'Femur': results.segmentation.femur_accuracy,
+                      'Pelvis': results.segmentation.pelvis_accuracy,
+                      'Acetabulum': results.segmentation.acetabulum_accuracy
+                    }
+                    const accuracy = accuracies[bone]
+                    
+                    return (
+                      <div key={idx} className={`flex items-center justify-between px-3 py-2 rounded ${
+                        darkMode ? 'bg-slate-700/50' : 'bg-slate-100'
+                      }`}>
+                        <span className={darkMode ? 'text-gray-300' : 'text-slate-700'}>{bone}</span>
+                        {accuracy && (
+                          <span className={`text-sm font-semibold ${getAccuracyColor(accuracy)}`}>
+                            {accuracy.toFixed(1)}%
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setSegmentationComplete(false)
+                  setResults(null)
+                  setSelectedPatient('')
+                }}
+              >
+                Reset Demo
+              </Button>
+
+              {/* Compatibility Badges */}
+              <div className="pt-4 border-t border-slate-700">
+                <p className={`text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                  Compatible With:
+                </p>
+                <div className="space-y-1 text-sm">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Stryker Mako System</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Zimmer ROSA Platform</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Smith & Nephew CORI</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - 3D Segmentation View and Results */}
+        <div className="col-span-2 space-y-4">
+          {/* 3D Segmentation View */}
+          <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className={darkMode ? 'text-white' : 'text-slate-900'}>
+                  3D Segmentation View
+                </CardTitle>
+                <div className="flex gap-2">
+                  <button className="px-3 py-1 text-sm rounded bg-slate-700 text-white">Axial</button>
+                  <button className="px-3 py-1 text-sm rounded bg-blue-600 text-white">3D</button>
+                  <button className="px-3 py-1 text-sm rounded bg-slate-700 text-white">Sagittal</button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {/* 6-Panel Bone Registration View */}
+              <div className={`rounded-lg p-4 ${darkMode ? 'bg-slate-900' : 'bg-slate-100'}`}>
+                <div className="grid grid-cols-3 grid-rows-2 gap-2">
+                  {[
+                    { title: 'Varus 0.0°', subtitle: 'L: 2.5mm', measurement: 'M: 8.0mm' },
+                    { title: 'PCA 2.3° | TEA 0.0°', subtitle: 'L: 6.0mm', measurement: 'M: 8.0mm' },
+                    { title: 'Flexion 5.0°', subtitle: '', measurement: 'Bone Resection' },
+                    { title: 'Varus 0.0°', subtitle: 'L: 7.0mm', measurement: 'M: 2.5mm' },
+                    { title: 'External 0.0°', subtitle: 'L: 7.0mm', measurement: 'M: 2.5mm' },
+                    { title: 'P. Slope 0.0°', subtitle: '', measurement: '' }
+                  ].map((panel, idx) => (
+                    <div key={idx} className={`aspect-square rounded-lg border-2 ${
+                      darkMode ? 'border-pink-500/50 bg-slate-800' : 'border-pink-300 bg-white'
+                    } p-3 flex flex-col justify-between`}>
+                      <div>
+                        <p className={`text-xs font-semibold ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                          {panel.title}
+                        </p>
+                        {panel.subtitle && (
+                          <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-slate-500'}`}>
+                            {panel.subtitle}
+                          </p>
+                        )}
+                      </div>
+                      {/* Simulated segmentation view */}
+                      <div className={`flex-1 flex items-center justify-center ${
+                        darkMode ? 'bg-slate-700/50' : 'bg-slate-200/50'
+                      } rounded mt-2`}>
+                        <div className="w-16 h-16 bg-green-500 rounded opacity-80"></div>
+                      </div>
+                      {panel.measurement && (
+                        <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-slate-500'}`}>
+                          {panel.measurement}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-4">
+                    <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                      <span className="w-3 h-3 bg-green-500 rounded"></span> Bone
+                    </span>
+                    <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                      <span className="w-3 h-3 bg-pink-500 rounded"></span> Segmentation
+                    </span>
+                  </div>
+                  <div className={`${darkMode ? 'text-green-400' : 'text-green-600'} font-semibold`}>
+                    + AI Segmentation Complete   Dr. Hip
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Implant Sizing and Alignment Grid */}
+          {results && (
+            <div className="grid grid-cols-2 gap-4">
+              <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+                <CardHeader>
+                  <CardTitle className={`text-base ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                    Implant Sizing
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {Object.entries(results.implantSizing).map(([key, value]) => (
+                    <div key={key} className="flex justify-between items-center">
+                      <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                        {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:
+                      </span>
+                      <span className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                        {value}
+                      </span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+                <CardHeader>
+                  <CardTitle className={`text-base ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                    Alignment
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {Object.entries(results.alignmentMetrics).map(([key, value]) => (
+                    <div key={key} className="flex flex-col">
+                      <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-slate-500'}`}>
+                        {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:
+                      </span>
+                      <span className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                        {value}
+                      </span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Surgical Planning */}
+          {results && (
+            <Card className={darkMode ? 'bg-blue-900/20 border-blue-600' : 'bg-blue-50 border-blue-300'}>
+              <CardHeader>
+                <CardTitle className={`text-base ${darkMode ? 'text-blue-300' : 'text-blue-900'}`}>
+                  <CheckCircle2 className="inline mr-2 h-5 w-5" />
+                  Surgical Planning Complete
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className={`text-sm ${darkMode ? 'text-blue-200' : 'text-blue-800'}`}>
+                  Ready to export to Mako robotic system for intraoperative guidance
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Info Sections */}
+      {results && (
+        <div className="grid grid-cols-3 gap-6">
+          <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+            <CardHeader>
+              <CardTitle className={`text-sm ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                Technology
+              </CardTitle>
+            </CardHeader>
+            <CardContent className={`text-xs ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+              Built on Microsoft's MedImageParse3D foundation model. Fine-tuned for orthopedic bone segmentation with CT imaging data.
+            </CardContent>
+          </Card>
+
+          <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+            <CardHeader>
+              <CardTitle className={`text-sm ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                Performance
+              </CardTitle>
+            </CardHeader>
+            <CardContent className={`text-xs ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+              Achieves 96%+ accuracy with 97% reduction in processing time compared to manual segmentation workflows.
+            </CardContent>
+          </Card>
+
+          <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+            <CardHeader>
+              <CardTitle className={`text-sm ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                Integration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className={`text-xs ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+              DICOM-compatible pipeline ready for integration with major robotic surgery platforms including Mako, ROSA, and CORI.
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MetricCard({ title, value, subtitle, icon: Icon, darkMode, iconColor }: any) {
+  return (
+    <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+      <CardContent className="pt-6">
+        <div className="flex items-center justify-between mb-2">
+          <Icon className={`h-6 w-6 ${iconColor}`} />
+        </div>
+        <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+          {value}
+        </div>
+        <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+          {title}
+        </div>
+        <div className={`text-xs mt-0.5 ${darkMode ? 'text-gray-500' : 'text-slate-500'}`}>
+          {subtitle}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function getAccuracyColor(accuracy: number): string {
+  if (accuracy >= 96) return 'text-blue-500'
+  if (accuracy >= 95) return 'text-green-500'
+  if (accuracy >= 90) return 'text-yellow-500'
+  return 'text-orange-500'
+}

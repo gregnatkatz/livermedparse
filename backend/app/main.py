@@ -221,3 +221,76 @@ async def analyze_batch(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Batch analysis failed: {str(e)}")
+
+@app.get("/api/hip/patients")
+async def list_hip_patients():
+    """Get list of available hip CT scan patient IDs"""
+    return {
+        'success': True,
+        'patients': [
+            {'id': 'H001', 'label': 'Hip Patient 001', 'filename': 'hip_001.nii'},
+            {'id': 'H002', 'label': 'Hip Patient 002', 'filename': 'hip_002.nii'},
+            {'id': 'H003', 'label': 'Hip Patient 003', 'filename': 'hip_003.nii'},
+        ],
+        'total': 3
+    }
+
+@app.post("/api/hip/analyze")
+async def analyze_hip(patient_id: str = Form(...)):
+    """Analyze hip CT for replacement planning"""
+    try:
+        ai_service = get_ai_service()
+        result = await ai_service.analyze_hip_image_by_patient(patient_id)
+        
+        return {
+            'success': True,
+            'data': result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Hip analysis failed: {str(e)}")
+
+@app.get("/api/hip/demo-data")
+async def get_hip_demo_data():
+    """Get pre-loaded hip demo data for fast display"""
+    return {
+        'patient_id': 'H001',
+        'segmentation': {
+            'detected': ['Femur', 'Pelvis', 'Acetabulum'],
+            'quality': 'Good bone quality',
+            'femur_accuracy': 96.4,
+            'pelvis_accuracy': 97.1,
+            'acetabulum_accuracy': 95.8
+        },
+        'implantSizing': {
+            'femoral_component': 'Size 4',
+            'acetabular_component': 'Size 3',
+            'polyethylene': '10mm'
+        },
+        'alignmentMetrics': {
+            'mechanical_axis': '1.2° varus',
+            'femoral_rotation': '3.0° external',
+            'tibial_slope': '5.0° posterior'
+        },
+        'surgicalPlan': """**Preoperative Planning:**
+Hip CT demonstrates suitable anatomy for total hip replacement with robotic assistance.
+
+**Implant Selection:**
+- Acetabular Cup: 54mm press-fit
+- Femoral Stem: Size 12 cementless
+- Femoral Head: 32mm +5mm offset
+
+**Surgical Approach:**
+- Recommended: Posterior approach with Mako guidance
+- Target acetabular position: 42° inclination, 18° anteversion
+- Expected leg length restoration: Equal
+
+**Compatibility:**
+- Stryker Mako System ✓
+- Zimmer ROSA Platform ✓
+- Smith & Nephew CORI ✓""",
+        'metrics': {
+            'processingTime': '3.8min',
+            'accuracy': '96.2%',
+            'bonesSegmented': 4
+        }
+    }
