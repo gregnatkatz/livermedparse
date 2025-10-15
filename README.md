@@ -1,12 +1,21 @@
-# Liver Disease Imaging AI Platform
+# Multi-Organ Medical Imaging AI Platform
 
-A comprehensive medical imaging AI demonstration platform focused on liver disease analysis, powered by Azure AI Foundry and advanced medical imaging models.
+A comprehensive medical imaging AI demonstration platform for surgical planning and disease analysis, powered by Azure AI services and advanced medical imaging models. Features AI-powered segmentation for liver disease analysis and hip replacement surgical planning.
 
-![Azure AI Logo](frontend/public/logo.png)
+![Medical Imaging AI](frontend/public/logo.png)
 
-## 🎯 Project Overview
+## 🎯 Overview
 
-This platform demonstrates advanced AI capabilities for liver disease detection and analysis using Microsoft Azure AI Foundry services integrated with MedImageParse3D for 3D liver segmentation and GPT-4.1 for clinical analysis.
+This platform demonstrates state-of-the-art AI capabilities for medical image analysis using Microsoft Azure AI services integrated with **MedImageParse3D** for 3D organ segmentation and **GPT-4.1** for comprehensive clinical analysis. The platform showcases a multi-organ approach with current implementations for liver disease detection and hip replacement surgical planning.
+
+### Key Capabilities
+
+✅ **Multi-Organ Support**: Liver disease analysis + Hip replacement planning (extensible to knee, spine, etc.)  
+✅ **Real Medical Data**: 123 liver CT scans + 58 hip CT scans from public medical imaging repositories  
+✅ **AI-Powered Segmentation**: MedImageParse3D foundation model for accurate bone/organ segmentation  
+✅ **Clinical Analysis**: GPT-4.1 generates comprehensive surgical planning and diagnostic reports  
+✅ **Professional UI**: Card-based interface with color-coded sections for quick scanning  
+✅ **Robotic Surgery Compatible**: Output format ready for Mako, ROSA, and CORI surgical systems
 
 ## ⚠️ IMPORTANT: Test Data Disclaimer
 
@@ -21,25 +30,60 @@ This platform demonstrates advanced AI capabilities for liver disease detection 
 
 All data has been de-identified and contains no HIPAA-protected health information. Any patient demographics or clinical information displayed in the application are randomly generated for demonstration purposes only.
 
-### Current Features (Fully Implemented ✅)
+## ✨ Features
 
-- **Dashboard Home Screen** (Default Landing): Analytics-first interface with comprehensive charts showing:
+### Liver Disease Analysis
+
+- **Dashboard Analytics**: Comprehensive analytics dashboard with charts showing:
   - Total image analysis count and accuracy metrics
-  - Modality distribution (Liver MRI, CT, Ultrasound, Pathology)
+  - Modality distribution (MRI, CT, Ultrasound, Pathology)
   - Disease classification breakdown with pie chart
   - Accuracy trends over time with line graph
-- **Patient Selection by ID**: Select from 123 unique patients (P000-P122) mapped to Kaggle NIfTI dataset files
-- **Multi-Modal Image Analysis**: Support for Liver MRI, Liver CT, Ultrasound, and Pathology imaging
+  
+- **Patient Selection**: Select from 123 unique patients (P000-P122) from Kaggle NIfTI dataset
+
 - **Red Tumor Overlay Visualization**: Color-coded segmentation highlighting:
   - **Bright red (RGB: 255, 0, 0)** for tumor regions
   - Subtle red tint for liver parenchyma
   - Grayscale base for original liver anatomy
+
 - **Batch Processing**: Analyze up to 20 patients serially with comprehensive results dashboard
-- **MedImageParse3D Integration**: Real Azure ML endpoint for 3D liver segmentation from NIfTI volumes
-- **GPT-4.1 Clinical Analysis**: AI-powered clinical insights and differential diagnosis
+
 - **Interactive 2D Image Viewer**: Zoom, rotate, pan, and reset controls
-- **Dark/Light Mode Toggle**: Responsive UI with theme support
-- **Research Disclaimers**: Clear warnings throughout the application
+
+### Hip Replacement Planning 🆕
+
+- **Real Patient CT Scans**: 58 de-identified hip CT scans from TCIA PELVIC-REFERENCE-DATA collection
+
+- **6-Panel CT Visualization**: Axial, Coronal, Sagittal, and 3D views with pink/red bone segmentation overlays
+
+- **Patient Selection**: Browse 58 real patient cases with demographics
+
+- **Comprehensive Surgical Planning Cards**:
+  - **Segmented Bone Structures** (green accuracy badges): Femur, Pelvis, Acetabulum
+  - **Implant Sizing** (blue boxes): Acetabular Cup, Femoral Stem, Femoral Head recommendations
+  - **Alignment Metrics** (purple boxes): Inclination, Anteversion, Leg Length, Offset measurements
+
+- **5 Beautiful Clinical Analysis Cards**:
+  1. **Preoperative Assessment**: Imaging quality, bone quality assessment (cortical thickness, Singh Index, T-Score), anatomic considerations
+  2. **Surgical Planning & Approach**: Surgical approach details, acetabular/femoral positioning, expected range of motion
+  3. **Recovery Protocol**: Timeline with color-coded badges (Day 0-1, Weeks 1-6, Follow-up)
+  4. **Risk Assessment & Mitigation**: 6 risk categories with percentages and mitigation strategies
+  5. **Expected Clinical Outcomes**: 6 outcome metrics with large bold numbers (pain relief, satisfaction, accuracy, etc.)
+
+- **Professional Medical UI**: 
+  - Color-coded sections for visual hierarchy
+  - Badges and highlights for quick scanning
+  - Grid layouts for organized data presentation
+  - Professional medical imaging aesthetic
+
+### General Features
+
+- **Multi-Modal Image Analysis**: Support for MRI, CT, Ultrasound, and Pathology imaging
+- **MedImageParse3D Integration**: Azure ML endpoint for 3D organ/bone segmentation
+- **GPT-4.1 Clinical Analysis**: AI-powered clinical insights and surgical planning recommendations
+- **Dark/Light Mode Toggle**: Responsive UI with theme support throughout
+- **Research Disclaimers**: Clear warnings that this is for research/demo purposes only
 
 ### Tech Stack
 
@@ -238,48 +282,69 @@ async def analyze_batch_parallel(patient_ids: List[str], modality: str):
 ## 📁 Project Structure
 
 ```
-medical-ai-demo/
+livermedparse/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py           # FastAPI application
-│   │   ├── services.py       # AI service implementations
-│   │   └── config.py         # Configuration management
-│   ├── pyproject.toml        # Python dependencies
-│   └── .env                  # Environment variables
+│   │   ├── main.py              # FastAPI application with all routes
+│   │   ├── services.py          # AI service implementations (MedImageParse3D, GPT-4.1)
+│   │   └── config.py            # Configuration management
+│   ├── data/
+│   │   ├── kaggle/              # Kaggle liver dataset (123 patients)
+│   │   └── tcia_pelvic/         # TCIA hip CT scans (58 patients)
+│   ├── scripts/                 # Data processing scripts
+│   ├── pyproject.toml           # Python dependencies
+│   └── .env                     # Environment variables (not in git)
 ├── frontend/
 │   ├── src/
-│   │   ├── App.tsx           # Main application with navigation
-│   │   ├── LandingPage.tsx   # Landing page component
-│   │   ├── SpinningLiver.tsx # 3D spinning liver model
-│   │   ├── Liver3DViewer.tsx # Interactive 2D image viewer
-│   │   └── AnalyticsDashboard.tsx  # Analytics dashboard
+│   │   ├── App.tsx              # Main application with tab navigation
+│   │   ├── LandingPage.tsx      # Landing page component
+│   │   ├── Liver3DViewer.tsx    # Liver analysis component
+│   │   ├── HipDemo.tsx          # Hip replacement planning component 🆕
+│   │   ├── AnalyticsDashboard.tsx # Analytics dashboard
+│   │   └── SpinningLiver.tsx    # 3D spinning liver model
 │   ├── public/
-│   │   └── logo.png          # Azure AI logo
-│   └── package.json          # Node.js dependencies
-├── data/
-│   └── kaggle/               # Kaggle datasets (2.8GB)
-└── scripts/
-    └── create_logo.py        # Logo generation script
+│   │   └── logo.png             # Application logo
+│   ├── package.json             # Node.js dependencies
+│   └── .env                     # Environment variables (not in git)
+├── docs/
+│   └── screenshots/             # Application screenshots for documentation
+├── README.md                    # This file
+└── HIP_IMPLEMENTATION_GUIDE.md  # Detailed implementation guide for hip feature
 ```
 
 ## 🔍 API Endpoints
 
-### Backend (http://localhost:8000)
+### Health & Configuration
 
-- `GET /healthz` - Health check
-- `GET /api/config` - Get configuration
-- `GET /api/patients` - List available patients (P000-P122)
-- `POST /api/analyze` - Analyze medical image by patient ID or uploaded file
-  - Accepts: `multipart/form-data` with optional image file, modality, and patient_id
-  - Returns: Embeddings, segmentation, GPT-4.1 analysis, metrics, demographics
-- `POST /api/analyze/batch` - Batch analyze multiple patients serially
-  - Accepts: `multipart/form-data` with comma-separated patient_ids and modality
-  - Returns: Array of analysis results for each patient
-- `POST /api/upload-demo` - Load demo image from Kaggle dataset
-  - Accepts: `application/json` with modality and optional patient_id
-  - Returns: Demo image data from NIfTI file
-- `GET /api/analytics` - Get analytics data for dashboard
-  - Returns: Total images, accuracy, distributions, demographics
+- `GET /healthz` - Health check endpoint
+- `GET /api/config` - Get application configuration
+
+### Liver Analysis
+
+- `GET /api/patients` - List available liver patients (P000-P122)
+- `POST /api/analyze` - Analyze liver image by patient ID or uploaded file
+  - **Input**: `multipart/form-data` with optional image file, modality, patient_id
+  - **Output**: Segmentation, GPT-4.1 analysis, metrics, demographics
+- `POST /api/analyze/batch` - Batch analyze multiple liver patients
+  - **Input**: `multipart/form-data` with comma-separated patient_ids and modality
+  - **Output**: Array of analysis results
+- `POST /api/upload-demo` - Load demo liver image from Kaggle dataset
+  - **Input**: `application/json` with modality and optional patient_id
+  - **Output**: Demo image data from NIfTI file
+- `GET /api/analytics` - Get analytics data for liver dashboard
+  - **Output**: Total images, accuracy, distributions, demographics
+
+### Hip Replacement Planning 🆕
+
+- `GET /api/hip/patients` - List available hip patients from TCIA dataset (58 patients)
+  - **Output**: Array of patient objects with ID, age, gender, BMI, medical history
+- `POST /api/process-hip` - Process hip CT scan and generate surgical planning
+  - **Input**: `application/json` with patient_id
+  - **Output**: Segmentation masks, implant sizing, alignment metrics, clinical analysis cards
+
+### API Documentation
+
+Interactive API documentation available at: http://localhost:8000/docs (Swagger UI)
 
 ## 🧪 Implementation Notes
 
@@ -310,17 +375,41 @@ medical-ai-demo/
 
 ## 📸 Screenshots
 
-### Dashboard (Default Home Screen)
+### Hip Replacement Planning
+
+#### 1. Overview with Real CT Scans
+![Hip Demo Overview](docs/screenshots/01-hip-demo-overview-with-ct-scans.png)
+*Real hip CT scans with pink/red bone segmentation overlays, performance metrics, and patient selection*
+
+#### 2. Implant Sizing & Alignment Metrics
+![Implant Sizing & Alignment](docs/screenshots/02-hip-implant-sizing-alignment.png)
+*AI-generated implant sizing recommendations and alignment measurements for surgical planning*
+
+#### 3. Preoperative Assessment Card
+![Preoperative Assessment](docs/screenshots/03-hip-preoperative-assessment.png)
+*Comprehensive preoperative assessment with color-coded sections for imaging quality, bone quality, and anatomic considerations*
+
+#### 4. Recovery Protocol & Risk Assessment
+![Recovery & Risk Assessment](docs/screenshots/04-hip-recovery-risk-assessment.png)
+*Timeline-based recovery protocol and detailed risk assessment with mitigation strategies*
+
+#### 5. Clinical Outcomes
+![Clinical Outcomes](docs/screenshots/05-hip-clinical-outcomes.png)
+*Expected clinical outcomes with large metric numbers showing pain relief, satisfaction, and positioning accuracy*
+
+### Liver Disease Analysis
+
+#### Dashboard
 ![Dashboard with Analytics](screenshots/dashboard.png)
 *Analytics-first dashboard showing total analyses, accuracy metrics, modality distribution, and disease classification*
 
-### Analysis with Patient Selection and Red Tumor Overlay
+#### Analysis with Red Tumor Overlay
 ![Analysis with Red Overlay](screenshots/analysis-red-overlay.png)
-*Liver scan for Patient P045 showing bright red tumor segmentation overlay with GPT-4.1 clinical analysis*
+*Liver scan showing bright red tumor segmentation overlay with GPT-4.1 clinical analysis*
 
-### Batch Processing Interface
+#### Batch Processing
 ![Batch Processing](screenshots/batch-processing.png)
-*Batch processing UI for analyzing up to 20 patients serially with comprehensive results dashboard*
+*Batch processing UI for analyzing multiple patients with comprehensive results dashboard*
 
 ## ⚠️ Important Notes
 
