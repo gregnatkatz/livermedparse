@@ -13,10 +13,18 @@ def create_realistic_ct_scan(view_type, output_dir):
     
     width, height = 800, 600
     
-    ct_array = np.random.normal(110, 8, (height, width))
+    ct_array = np.random.normal(110, 15, (height, width))
     
-    noise = np.random.normal(0, 3, (height, width))
+    noise = np.random.normal(0, 8, (height, width))
     ct_array += noise
+    
+    for _ in range(25):
+        cx, cy = np.random.randint(50, width-50), np.random.randint(50, height-50)
+        radius = np.random.randint(40, 120)
+        intensity_var = np.random.randint(-25, 25)
+        Y, X = np.ogrid[:height, :width]
+        mask = (X - cx)**2 + (Y - cy)**2 <= radius**2
+        ct_array[mask] += intensity_var
     
     if view_type == "axial":
         create_axial_pelvis_anatomy(ct_array)
@@ -32,9 +40,9 @@ def create_realistic_ct_scan(view_type, output_dir):
     rgb_image = np.stack([ct_array] * 3, axis=-1)
     
     bone_mask = ct_array > 180
-    rgb_image[bone_mask, 0] = 255  # RED channel - maximum
-    rgb_image[bone_mask, 1] = np.maximum(0, ct_array[bone_mask] - 100)   # GREEN - much less
-    rgb_image[bone_mask, 2] = np.maximum(0, ct_array[bone_mask] - 100)   # BLUE - much less
+    rgb_image[bone_mask, 0] = np.minimum(255, ct_array[bone_mask] * 1.3 + 80)  # RED boost
+    rgb_image[bone_mask, 1] = ct_array[bone_mask] * 0.5  # Reduce green
+    rgb_image[bone_mask, 2] = ct_array[bone_mask] * 0.5  # Reduce blue
     
     img = Image.fromarray(rgb_image)
     img = img.filter(ImageFilter.GaussianBlur(radius=0.5))
