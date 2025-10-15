@@ -249,6 +249,31 @@ async def analyze_hip(patient_id: str = Form(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Hip analysis failed: {str(e)}")
 
+@app.get("/api/hip/ct-images")
+async def get_hip_ct_images():
+    """Get hip CT scan images with red bone segmentation overlays"""
+    try:
+        from pathlib import Path
+        
+        ct_dir = Path(__file__).parent.parent / "data" / "hip_ct_scans"
+        images = {}
+        
+        views = ["axial", "coronal", "sagittal", "3d_anterior", "3d_lateral", "3d_superior"]
+        
+        for view in views:
+            b64_file = ct_dir / f"hip_ct_{view}.png.b64"
+            if b64_file.exists():
+                with open(b64_file, 'r') as f:
+                    images[view] = f.read()
+        
+        return {
+            'success': True,
+            'images': images,
+            'count': len(images)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load hip CT images: {str(e)}")
+
 @app.get("/api/hip/demo-data")
 async def get_hip_demo_data():
     """Get pre-loaded hip demo data for fast display"""
@@ -271,23 +296,39 @@ async def get_hip_demo_data():
             'femoral_rotation': '3.0° external',
             'tibial_slope': '5.0° posterior'
         },
-        'surgicalPlan': """**Preoperative Planning:**
-Hip CT demonstrates suitable anatomy for total hip replacement with robotic assistance.
+        'surgicalPlan': """**Preoperative Assessment:**
+CT imaging demonstrates favorable anatomy for total hip arthroplasty with robotic-assisted precision. Bone quality assessment reveals adequate cortical thickness and trabecular density for cementless fixation. No significant acetabular dysplasia or proximal femoral deformity noted.
 
-**Implant Selection:**
-- Acetabular Cup: 54mm press-fit
-- Femoral Stem: Size 12 cementless
-- Femoral Head: 32mm +5mm offset
+**Segmentation Results:**
+- Femoral Head: 96.4% segmentation accuracy
+- Acetabulum: 95.8% segmentation accuracy  
+- Proximal Femur: 97.1% segmentation accuracy
+- Native femoral offset: 45.2mm measured
+- Leg length discrepancy: Minimal (<2mm)
 
-**Surgical Approach:**
-- Recommended: Posterior approach with robotic guidance
-- Target acetabular position: 42° inclination, 18° anteversion
-- Expected leg length restoration: Equal
+**Implant Selection Recommendations:**
+- Acetabular Component: 54mm press-fit cup, ceramic liner
+- Femoral Component: Size 12 cementless metaphyseal-filling stem
+- Bearing Surface: 32mm +5mm ceramic-on-ceramic with extended offset
+- Planned restoration of anatomic offset and leg length
 
-**Compatibility:**
+**Surgical Planning:**
+- Approach: Posterior approach with enhanced soft tissue repair
+- Target Acetabular Position: 42° inclination, 18° anteversion (within Lewinnek safe zone)
+- Femoral Version: 10-15° anteversion planned
+- Expected Leg Length Restoration: Equal bilateral limb lengths
+- Predicted Range of Motion: Full flexion (>120°), unrestricted abduction
+
+**Clinical Considerations:**
+- Patient positioning: Lateral decubitus with robotic registration
+- Intraoperative verification: Real-time implant positioning feedback
+- Post-operative protocol: Standard weight-bearing as tolerated
+- Follow-up imaging: 6-week and 1-year radiographic assessment
+
+**Platform Compatibility:**
 - ABC MedTech Robotic System ✓
-- Major Surgical Platforms ✓
-- DICOM-Compatible Systems ✓""",
+- Major Surgical Planning Platforms ✓
+- DICOM Export for OR Integration ✓""",
         'metrics': {
             'processingTime': '3.8min',
             'accuracy': '96.2%',

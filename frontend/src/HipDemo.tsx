@@ -31,6 +31,7 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
   const [results, setResults] = useState<HipAnalysisResult | null>(null)
   const [processing, setProcessing] = useState(false)
   const [segmentationComplete, setSegmentationComplete] = useState(false)
+  const [ctImages, setCtImages] = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetch(`${API_URL}/api/hip/demo-data`)
@@ -49,6 +50,15 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
         }
       })
       .catch(err => console.error('Patients fetch error:', err))
+    
+    fetch(`${API_URL}/api/hip/ct-images`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setCtImages(data.images)
+        }
+      })
+      .catch(err => console.error('CT images load error:', err))
   }, [])
 
   const handleAnalyze = async () => {
@@ -273,55 +283,50 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
               </div>
             </CardHeader>
             <CardContent>
-              {/* 6-Panel Bone Registration View */}
+              {/* 6-Panel Bone Registration View with Red Contrast Overlays */}
               <div className={`rounded-lg p-4 ${darkMode ? 'bg-slate-900' : 'bg-slate-100'}`}>
                 <div className="grid grid-cols-3 grid-rows-2 gap-2">
                   {[
-                    { title: 'Varus 0.0°', subtitle: 'L: 2.5mm', measurement: 'M: 8.0mm' },
-                    { title: 'PCA 2.3° | TEA 0.0°', subtitle: 'L: 6.0mm', measurement: 'M: 8.0mm' },
-                    { title: 'Flexion 5.0°', subtitle: '', measurement: 'Bone Resection' },
-                    { title: 'Varus 0.0°', subtitle: 'L: 7.0mm', measurement: 'M: 2.5mm' },
-                    { title: 'External 0.0°', subtitle: 'L: 7.0mm', measurement: 'M: 2.5mm' },
-                    { title: 'P. Slope 0.0°', subtitle: '', measurement: '' }
+                    { title: 'Axial View', view: 'axial' },
+                    { title: 'Coronal View', view: 'coronal' },
+                    { title: 'Sagittal View', view: 'sagittal' },
+                    { title: '3D Anterior', view: '3d_anterior' },
+                    { title: '3D Lateral', view: '3d_lateral' },
+                    { title: '3D Superior', view: '3d_superior' }
                   ].map((panel, idx) => (
                     <div key={idx} className={`aspect-square rounded-lg border-2 ${
-                      darkMode ? 'border-pink-500/50 bg-slate-800' : 'border-pink-300 bg-white'
-                    } p-3 flex flex-col justify-between`}>
-                      <div>
-                        <p className={`text-xs font-semibold ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
-                          {panel.title}
-                        </p>
-                        {panel.subtitle && (
-                          <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-slate-500'}`}>
-                            {panel.subtitle}
-                          </p>
-                        )}
-                      </div>
-                      {/* Simulated segmentation view */}
+                      darkMode ? 'border-red-500/50 bg-slate-800' : 'border-red-300 bg-white'
+                    } p-2 flex flex-col`}>
+                      <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                        {panel.title}
+                      </p>
                       <div className={`flex-1 flex items-center justify-center ${
                         darkMode ? 'bg-slate-700/50' : 'bg-slate-200/50'
-                      } rounded mt-2`}>
-                        <div className="w-16 h-16 bg-green-500 rounded opacity-80"></div>
+                      } rounded overflow-hidden`}>
+                        {ctImages[panel.view] ? (
+                          <img 
+                            src={ctImages[panel.view]} 
+                            alt={panel.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-red-500 rounded opacity-60 animate-pulse"></div>
+                        )}
                       </div>
-                      {panel.measurement && (
-                        <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-slate-500'}`}>
-                          {panel.measurement}
-                        </p>
-                      )}
                     </div>
                   ))}
                 </div>
                 <div className="mt-3 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-4">
                     <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
-                      <span className="w-3 h-3 bg-green-500 rounded"></span> Bone
+                      <span className="w-3 h-3 bg-gray-400 rounded"></span> CT Scan
                     </span>
                     <span className={`flex items-center gap-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
-                      <span className="w-3 h-3 bg-pink-500 rounded"></span> Segmentation
+                      <span className="w-3 h-3 bg-red-500 rounded"></span> Bone Segmentation
                     </span>
                   </div>
-                  <div className={`${darkMode ? 'text-green-400' : 'text-green-600'} font-semibold`}>
-                    + AI Segmentation Complete   Dr. Hip
+                  <div className={`${darkMode ? 'text-red-400' : 'text-red-600'} font-semibold`}>
+                    ✓ AI Bone Segmentation with Red Contrast
                   </div>
                 </div>
               </div>
