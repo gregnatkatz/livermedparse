@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Clock, Target, CheckCircle, Zap, CheckCircle2 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -18,6 +19,14 @@ interface HipAnalysisResult {
   implantSizing: Record<string, string>
   alignmentMetrics: Record<string, string>
   surgicalPlan: string
+  gpt41Analysis?: string
+  demographics?: {
+    patient_id: string
+    age: number
+    gender: string
+    bmi?: number
+    medical_history?: string
+  }
   metrics: {
     processingTime: string
     accuracy: string
@@ -396,6 +405,86 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
           )}
         </div>
       </div>
+
+      {/* Patient Demographics and GPT-4.1 Analysis */}
+      {results && results.demographics && (
+        <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+          <CardHeader>
+            <CardTitle className={darkMode ? 'text-white' : 'text-slate-900'}>
+              Patient Demographics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div>
+                <p className={`text-sm mb-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                  Patient ID
+                </p>
+                <p className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {results.demographics.patient_id}
+                </p>
+              </div>
+              <div>
+                <p className={`text-sm mb-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                  Age
+                </p>
+                <p className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {results.demographics.age} years
+                </p>
+              </div>
+              <div>
+                <p className={`text-sm mb-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                  Gender
+                </p>
+                <p className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {results.demographics.gender}
+                </p>
+              </div>
+              {results.demographics.bmi && (
+                <div>
+                  <p className={`text-sm mb-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                    BMI
+                  </p>
+                  <p className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                    {results.demographics.bmi}
+                  </p>
+                </div>
+              )}
+            </div>
+            {results.demographics.medical_history && (
+              <div className="mt-4">
+                <p className={`text-sm mb-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                  Medical History
+                </p>
+                <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+                  {results.demographics.medical_history}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {results && results.gpt41Analysis && (
+        <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+          <CardHeader>
+            <CardTitle className={`flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+              <CheckCircle2 className="w-5 h-5" />
+              Comprehensive GPT-4.1 Clinical Analysis
+            </CardTitle>
+            <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+              AI-powered surgical planning recommendations and risk assessment
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className={`prose max-w-none ${darkMode ? 'prose-invert' : ''} text-sm ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {results.gpt41Analysis}
+              </ReactMarkdown>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Bottom Info Sections */}
       {results && (

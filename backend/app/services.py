@@ -464,14 +464,29 @@ Format your response in markdown with clear sections."""
     async def analyze_hip_image_by_patient(self, patient_id: str) -> Dict[str, Any]:
         """Analyze hip CT scan for replacement planning"""
         
+        import random
+        
         segmentation = self._get_mock_hip_segmentation()
         gpt_analysis = await self._get_hip_surgical_planning(segmentation)
         
         return {
             'segmentation': segmentation,
             'surgicalPlan': gpt_analysis,
+            'gpt41Analysis': gpt_analysis,  # Add GPT-4.1 analysis for clinical review
             'implantSizing': self._calculate_implant_sizes(segmentation),
             'alignmentMetrics': self._calculate_hip_alignment(segmentation),
+            'demographics': {
+                'patient_id': patient_id,
+                'age': random.randint(55, 75),
+                'gender': random.choice(['Male', 'Female']),
+                'bmi': round(random.uniform(24.5, 31.2), 1),
+                'medical_history': random.choice([
+                    'History of osteoarthritis, hypertension controlled with medication',
+                    'Degenerative joint disease, Type 2 diabetes mellitus',
+                    'Primary osteoarthritis of hip, hyperlipidemia',
+                    'Post-traumatic arthritis, well-controlled asthma'
+                ])
+            },
             'metrics': {
                 'processingTime': '3.2min',
                 'accuracy': '96.5%',
