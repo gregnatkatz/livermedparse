@@ -240,15 +240,15 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
                 <div className="space-y-1 text-sm">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Stryker Mako System</span>
+                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>ABC MedTech Robotic System</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Zimmer ROSA Platform</span>
+                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Major Surgical Platforms</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>Smith & Nephew CORI</span>
+                    <span className={darkMode ? 'text-gray-400' : 'text-slate-600'}>DICOM-Compatible Systems</span>
                   </div>
                 </div>
               </div>
@@ -384,7 +384,7 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
               </CardHeader>
               <CardContent>
                 <p className={`text-sm ${darkMode ? 'text-blue-200' : 'text-blue-800'}`}>
-                  Ready to export to Mako robotic system for intraoperative guidance
+                  Ready to export to ABC MedTech robotic system for intraoperative guidance
                 </p>
               </CardContent>
             </Card>
@@ -424,7 +424,7 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
               </CardTitle>
             </CardHeader>
             <CardContent className={`text-xs ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
-              DICOM-compatible pipeline ready for integration with major robotic surgery platforms including Mako, ROSA, and CORI.
+              DICOM-compatible pipeline ready for integration with major robotic surgery platforms including ABC MedTech and other leading systems.
             </CardContent>
           </Card>
         </div>

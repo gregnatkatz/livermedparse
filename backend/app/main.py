@@ -280,14 +280,14 @@ Hip CT demonstrates suitable anatomy for total hip replacement with robotic assi
 - Femoral Head: 32mm +5mm offset
 
 **Surgical Approach:**
-- Recommended: Posterior approach with Mako guidance
+- Recommended: Posterior approach with robotic guidance
 - Target acetabular position: 42° inclination, 18° anteversion
 - Expected leg length restoration: Equal
 
 **Compatibility:**
-- Stryker Mako System ✓
-- Zimmer ROSA Platform ✓
-- Smith & Nephew CORI ✓""",
+- ABC MedTech Robotic System ✓
+- Major Surgical Platforms ✓
+- DICOM-Compatible Systems ✓""",
         'metrics': {
             'processingTime': '3.8min',
             'accuracy': '96.2%',
