@@ -151,6 +151,320 @@ Liver biopsy demonstrates chronic hepatitis with moderate to severe portal and p
                 'mode': img.mode
             }
         }
+    
+    async def analyze_hip_image_by_patient(self, patient_id: str) -> Dict[str, Any]:
+        """Mock hip analysis for surgical planning"""
+        import random
+        
+        segmentation = {
+            'detected': ['Femur', 'Pelvis', 'Acetabulum'],
+            'quality': 'Good bone quality',
+            'femur_accuracy': 96.4,
+            'pelvis_accuracy': 97.1,
+            'acetabulum_accuracy': 95.8,
+            'acetabular_inclination': 42.3,
+            'acetabular_anteversion': 18.1,
+            'femoral_offset': 45.2
+        }
+        
+        gpt_analysis = """## Comprehensive Preoperative Assessment
+
+**Imaging Quality & Anatomic Analysis:**
+The CT imaging dataset demonstrates excellent diagnostic quality with optimal contrast resolution for surgical planning. Three-dimensional reconstruction reveals favorable bony anatomy for primary total hip arthroplasty with robotic-assisted precision guidance. 
+
+**Bone Quality Assessment:**
+- Cortical thickness: Well-preserved, measuring 4.2mm at metaphyseal region
+- Trabecular density: Good bone stock throughout acetabulum and proximal femur
+- Singh Index: Grade 5/6 indicating adequate bone mineralization
+- Bone mineral density assessment: T-score estimated at -0.8 (normal range)
+- No evidence of significant osteoporosis or metabolic bone disease
+- Adequate subchondral bone for cementless fixation components
+
+**Anatomic Considerations:**
+- Acetabular morphology: Normal depth, no significant dysplasia (Crowe Grade I)
+- Femoral geometry: Dorr Type A classification (normal canal fit)
+- Hip center position: Anatomic location preserved, no significant medialization
+- Native femoral offset: 45.2mm measured from center of rotation
+- Acetabular version: 18.1° anteversion (within normal physiologic range)
+- No significant proximal femoral deformity or retained hardware
+
+---
+
+
+**MedImageParse3D Foundation Model Results:**
+
+**Femoral Head & Neck (96.4% accuracy):**
+- Volume: 42.3 cm³
+- Hounsfield Units (HU): 650-850 (cortical bone)
+- Geometric center: Successfully identified for offset calculations
+- Neck-shaft angle: 128° (within normal range 125-135°)
+- Superior head-neck offset: 8.2mm
+- Articular surface degradation: Moderate degenerative changes noted
+
+**Acetabulum (95.8% accuracy):**
+- Bone volume: 78.6 cm³  
+- Coverage: 360° complete hemisphere
+- Anterior wall integrity: Intact, adequate for rim fixation
+- Posterior wall thickness: 12.4mm (sufficient for screw placement)
+- Cotyloid fossa depth: 8.5mm
+- Subchondral bone HU: 720-920 (excellent for press-fit fixation)
+
+**Proximal Femur (97.1% accuracy):**
+- Canal diameter at isthmus: 11.8mm
+- Metaphyseal diameter: 42.6mm
+- Canal flare index: 3.6 (normal fit for metaphyseal-filling stem)
+- Cortical index: 0.52 (good cortical thickness)
+- Medullary canal shape: Type A (cylindrical, favorable for press-fit)
+
+**Segmentation Quality Metrics:**
+- Overall Dice coefficient: 96.5%
+- Surface mesh resolution: 0.3mm voxel accuracy
+- Landmark identification: 100% (all 24 anatomic landmarks detected)
+- Registration error: <0.5mm (excellent for robotic planning)
+
+---
+
+
+**Acetabular Component:**
+- **Size:** 54mm outer diameter hemispherical press-fit cup
+- **Design:** Porous-coated titanium shell with trabecular metal technology
+- **Fixation:** Dual-geometry design with equatorial press-fit (1-2mm underreaming)
+- **Screw holes:** Multihole cluster for supplemental fixation if needed
+- **Liner:** 10° elevated rim polyethylene or ceramic insert
+- **Expected coverage:** 85-90% bone contact for biological fixation
+- **Insertion torque target:** 40-50 Nm for optimal osseointegration
+
+**Femoral Component:**
+- **Size:** Size 12 cementless metaphyseal-filling stem
+- **Design:** Proximally coated tapered wedge stem with lateral flare
+- **Coating:** Hydroxyapatite over porous titanium (proximal 1/3)
+- **Offset:** +5mm lateral offset option for anatomic restoration
+- **Neck length:** Standard (+0mm) predicted to restore leg length
+- **Projected fill:** 85% metaphyseal, 70% diaphyseal canal fill
+- **Subsidence allowance:** <2mm expected immediate micromotion
+
+**Bearing Surface:**
+- **Femoral head size:** 32mm diameter (optimal balance of ROM and wear)
+- **Material pairing:** Ceramic-on-ceramic (4th generation) recommended
+  - Alternative: Highly cross-linked polyethylene for cost consideration
+- **Head offset:** +5mm to restore native offset of 45.2mm
+- **Taper design:** 12/14 standard Morse taper
+- **Expected impingement-free ROM:** 130° flexion, 45° abduction, 30° external rotation
+
+---
+
+
+**Surgical Approach Selection:**
+- **Recommended approach:** Posterior (Moore/Southern) with enhanced soft tissue repair
+- **Rationale:** Optimal visualization of acetabulum, extensile if needed
+- **Muscle preservation:** Short external rotators tagged and repaired anatomically
+- **Capsular management:** Posterior capsulotomy with planned repair
+- **Sciatic nerve:** At-risk position noted, will require careful retraction
+
+**Alternative approach consideration:** Anterolateral (Hardinge) if patient history of posterior instability
+
+**Patient Positioning & Registration:**
+- **Position:** Lateral decubitus on radiolucent table
+- **Stabilization:** Anterior and posterior pelvic supports
+- **Fluoroscopy:** AP and lateral views for pelvic registration
+- **Robotic registration:** CT-to-fluoroscopy matching with <1mm accuracy
+- **Landmark verification:** ASIS, PSIS, and pubic symphysis palpation
+- **Leg preparation:** Circumferential sterile prep from iliac crest to ankle
+
+**Target Acetabular Component Position:**
+- **Inclination:** 42° (Target range: 40-45°, Lewinnek safe zone 30-50°)
+- **Anteversion:** 18° (Target range: 15-20°, Lewinnek safe zone 5-25°)
+- **Combined anteversion:** 35° (Femoral 15° + Acetabular 20° = safe zone)
+- **Medialization:** Restore anatomic center of rotation (±2mm)
+- **Superior coverage:** Maximize without superior overhang
+- **Robotic guidance:** Real-time positioning feedback with ±1° accuracy
+
+**Femoral Preparation & Implantation:**
+- **Neck osteotomy level:** 10mm above lesser trochanter at 45° angle
+- **Canal preparation:** Sequential broaching to Size 12 with lateral bias
+- **Version target:** 10-15° anteversion (checked with trial components)
+- **Leg length verification:** Robotic measurement vs. contralateral limb
+- **Offset restoration:** 45.2mm native offset restored with +5mm head
+- **Trial reduction:** Stability testing through full ROM before final implants
+
+**Expected Surgical Metrics:**
+- **Leg length restoration:** Equal bilateral limb lengths (±2mm tolerance)
+- **Femoral offset:** 45.2mm (matched to native anatomy)
+- **Hip center of rotation:** Restored to anatomic position
+- **Predicted range of motion:** 
+  - Flexion: 120-130° (functional requirement >110°)
+  - Extension: 20-30°
+  - Abduction: 45-50°
+  - Adduction: 30°
+  - Internal rotation: 30° at 90° flexion
+  - External rotation: 40° at 90° flexion
+- **Impingement-free zone:** 360° coverage with 32mm head
+
+---
+
+
+**Robotic System Integration:**
+- Pre-op CT matched to intraoperative fluoroscopy
+- Real-time reaming depth and trajectory guidance
+- Continuous position feedback during acetabular preparation
+- Impingement-free ROM simulation with trial components
+- Final component position verification before closure
+
+**Critical Checkpoints:**
+- [ ] Registration accuracy <1mm verified
+- [ ] Acetabular reaming to 53mm (1mm underreaming for 54mm cup)
+- [ ] Cup position: 42° inclination, 18° anteversion (±2° tolerance)
+- [ ] Acetabular component stability: No micromotion on trial seating
+- [ ] Femoral broaching: Size 12 with excellent cortical contact
+- [ ] Trial reduction: Concentric reduction, no subluxation
+- [ ] Leg length: Equal to contralateral (Shuck test <5mm)
+- [ ] Stability testing: No dislocation with flexion/adduction/IR to 90°/30°/30°
+- [ ] Final component seating: Bone-implant contact >85%
+- [ ] Soft tissue repair: Capsule and external rotators anatomically restored
+
+---
+
+
+**Immediate Postoperative (Day 0-1):**
+- Pain management: Multimodal analgesia (acetaminophen, NSAIDs, nerve block)
+- DVT prophylaxis: Chemical anticoagulation per institutional protocol
+- Early mobilization: Out of bed to chair within 6 hours
+- Physical therapy: Gait training with assistive device on POD 1
+- Weight-bearing status: Weight-bearing as tolerated (WBAT) immediately
+- Hip precautions: Modified (avoid combined flexion >90° + adduction + IR)
+
+**Hospital Stay (1-2 days):**
+- Daily PT/OT evaluation and progression
+- Pain control optimization
+- Wound assessment
+- Hemoglobin monitoring
+- Discharge criteria: Independent transfers, pain controlled, no complications
+
+**Outpatient Recovery (Weeks 1-6):**
+- Home health PT 2-3x/week or outpatient PT
+- Progressive strengthening and ROM exercises
+- Gait normalization without assistive device by week 4-6
+- Return to driving at 4-6 weeks (if off narcotics and good control)
+- Return to sedentary work at 2-4 weeks
+- Return to physical work at 8-12 weeks
+
+**Follow-up Imaging Schedule:**
+- **6 weeks:** AP pelvis and lateral hip radiographs
+  - Assess component position and alignment
+  - Evaluate for subsidence or loosening
+  - Confirm absence of heterotopic ossification
+  
+- **3 months:** Clinical evaluation (imaging only if concerns)
+  
+- **1 year:** AP pelvis and lateral hip radiographs
+  - Long-term baseline for component position
+  - Assess osseointegration and bone remodeling
+  - Evaluate for wear or osteolysis
+  
+- **Annual thereafter:** Clinical evaluation, imaging per clinical indication
+
+---
+
+
+**Patient-Specific Risk Factors:**
+- BMI: Monitor for wound healing complications (if elevated)
+- Age-related considerations: Bone quality adequate for cementless fixation
+- Medical comorbidities: Optimize diabetes/hypertension control perioperatively
+
+**Surgical Risks & Mitigation:**
+- **Dislocation risk (2-4%):** 
+  - Mitigate with: Proper component positioning, soft tissue repair, patient education
+  - Safe zone targeting: 42° inclination, 18° anteversion
+  
+- **Leg length discrepancy (<5mm):**
+  - Mitigate with: Robotic verification, trial component assessment
+  
+- **Periprosthetic fracture (<1%):**
+  - Mitigate with: Careful broaching technique, avoid aggressive canal preparation
+  
+- **Nerve injury (<0.5%):**
+  - Mitigate with: Careful retractor placement, limit traction time
+  
+- **Infection (<1%):**
+  - Mitigate with: Antibiotic prophylaxis, laminar flow OR, minimal tissue trauma
+  
+- **DVT/PE:**
+  - Mitigate with: Chemical prophylaxis, early mobilization, sequential compression
+
+---
+
+
+**ABC MedTech Robotic System Integration:**
+- ✓ DICOM CT import and 3D reconstruction
+- ✓ Automated registration and intraoperative tracking
+- ✓ Real-time acetabular reaming guidance
+- ✓ Component position verification
+- ✓ Templating and size prediction
+- ✓ Electronic surgical record export
+
+**Interoperability:**
+- ✓ HL7 FHIR data exchange for EHR integration
+- ✓ PACS connectivity for imaging distribution
+- ✓ OR equipment interfaces (fluoroscopy, navigation)
+- ✓ Post-operative data analytics dashboard
+
+**Quality Assurance:**
+- Automated surgical plan documentation
+- Deviation alerts if outside safe zones
+- Post-operative outcome tracking
+- Implant registry reporting compliance
+
+---
+
+
+**Functional Recovery:**
+- Pain relief: 90-95% of patients report excellent pain relief
+- Function: Return to normal daily activities by 3 months
+- Satisfaction: >95% patient satisfaction scores expected
+- Implant survival: 95% at 10 years, 90% at 20 years (literature data)
+
+**Predictive Success Metrics:**
+- Component positioning accuracy: ±2° of target (robotic-assisted)
+- Leg length restoration: ±2mm of contralateral limb
+- Offset restoration: ±3mm of native anatomy
+- ROM achievement: >90% of patients achieve functional ROM
+- Return to work: 85% return to previous employment level
+
+This comprehensive surgical plan demonstrates the integration of advanced AI segmentation with evidence-based orthopedic surgical principles, optimized for robotic-assisted total hip arthroplasty with excellent predicted outcomes."""
+        
+        return {
+            'segmentation': segmentation,
+            'surgicalPlan': gpt_analysis,
+            'gpt41Analysis': gpt_analysis,
+            'implantSizing': {
+                'acetabular_cup': '54mm',
+                'femoral_stem': 'Size 12',
+                'femoral_head': '32mm +5 offset'
+            },
+            'alignmentMetrics': {
+                'acetabular_inclination': '42° (target: 40-45°)',
+                'anteversion': '18° (target: 15-20°)',
+                'leg_length': 'Equal (0mm difference)',
+                'femoral_offset': '45.2mm'
+            },
+            'demographics': {
+                'patient_id': patient_id,
+                'age': random.randint(55, 75),
+                'gender': random.choice(['Male', 'Female']),
+                'bmi': round(random.uniform(24.5, 31.2), 1),
+                'medical_history': random.choice([
+                    'History of osteoarthritis, hypertension controlled with medication',
+                    'Degenerative joint disease, Type 2 diabetes mellitus',
+                    'Primary osteoarthritis of hip, hyperlipidemia',
+                    'Post-traumatic arthritis, well-controlled asthma'
+                ])
+            },
+            'metrics': {
+                'processingTime': '3.2min',
+                'accuracy': '96.5%',
+                'bonesSegmented': 3
+            }
+        }
 
 
 class RealAzureAIService:
