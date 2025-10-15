@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Clock, Target, CheckCircle, Zap, CheckCircle2 } from 'lucide-react'
+import { Clock, Target, CheckCircle, Zap, CheckCircle2, Activity, Settings, Ruler } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -116,7 +116,6 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
             </p>
           </div>
           <div className="text-right">
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>Demo by</p>
             <p className={`font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Greg Katz</p>
             <a href="https://github.com/gregnatkatz" className={`text-sm ${darkMode ? 'text-blue-400' : 'text-blue-600'} hover:underline`}>
               github.com/gregnatkatz
@@ -194,7 +193,7 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
                 disabled={!selectedPatient || processing}
                 className="w-full"
               >
-                {processing ? 'Analyzing...' : 'Analyze Hip CT'}
+                {processing ? 'Analyzing...' : 'Start Analysis'}
               </Button>
 
               {segmentationComplete && (
@@ -211,32 +210,49 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
 
               {/* Segmented Structures */}
               {results && (
-                <div className="space-y-2">
-                  <p className={`text-sm font-semibold ${darkMode ? 'text-gray-300' : 'text-slate-700'}`}>
-                    Segmented Structures:
-                  </p>
-                  {results.segmentation.detected.map((bone, idx) => {
-                    const accuracies: Record<string, number | undefined> = {
-                      'Femur': results.segmentation.femur_accuracy,
-                      'Pelvis': results.segmentation.pelvis_accuracy,
-                      'Acetabulum': results.segmentation.acetabulum_accuracy
-                    }
-                    const accuracy = accuracies[bone]
-                    
-                    return (
-                      <div key={idx} className={`flex items-center justify-between px-3 py-2 rounded ${
-                        darkMode ? 'bg-slate-700/50' : 'bg-slate-100'
-                      }`}>
-                        <span className={darkMode ? 'text-gray-300' : 'text-slate-700'}>{bone}</span>
-                        {accuracy && (
-                          <span className={`text-sm font-semibold ${getAccuracyColor(accuracy)}`}>
-                            {accuracy.toFixed(1)}%
-                          </span>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
+                <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
+                  <CardHeader>
+                    <CardTitle className={`flex items-center gap-2 text-sm ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                      <Activity className="w-4 h-4" />
+                      Segmented Bone Structures
+                    </CardTitle>
+                    <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                      MedImageParse3D 3D volumetric segmentation
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {results.segmentation.detected.map((bone, idx) => {
+                        const accuracies: Record<string, number | undefined> = {
+                          'Femur': results.segmentation.femur_accuracy,
+                          'Pelvis': results.segmentation.pelvis_accuracy,
+                          'Acetabulum': results.segmentation.acetabulum_accuracy
+                        }
+                        const accuracy = accuracies[bone]
+                        
+                        return (
+                          <div key={idx} className={`flex items-center justify-between p-3 rounded-lg ${
+                            darkMode ? 'bg-slate-900/50 border border-slate-700' : 'bg-slate-50 border border-slate-200'
+                          }`}>
+                            <span className={`flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                              <div className={`w-2 h-2 rounded-full ${darkMode ? 'bg-green-400' : 'bg-green-600'}`} />
+                              {bone}
+                            </span>
+                            {accuracy && (
+                              <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                                accuracy >= 96 
+                                  ? (darkMode ? 'bg-green-900/50 text-green-400 border border-green-500/30' : 'bg-green-100 text-green-700 border border-green-200')
+                                  : (darkMode ? 'bg-blue-900/50 text-blue-400 border border-blue-500/30' : 'bg-blue-100 text-blue-700 border border-blue-200')
+                              }`}>
+                                {accuracy.toFixed(1)}%
+                              </span>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
               )}
 
               <Button
@@ -248,7 +264,7 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
                   setSelectedPatient('')
                 }}
               >
-                Reset Demo
+                Reset Analysis
               </Button>
 
               {/* Compatibility Badges */}
@@ -347,19 +363,25 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
             <div className="grid grid-cols-2 gap-4">
               <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
                 <CardHeader>
-                  <CardTitle className={`text-base ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  <CardTitle className={`flex items-center gap-2 text-base ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                    <Settings className="w-4 h-4" />
                     Implant Sizing
                   </CardTitle>
+                  <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                    AI-recommended component sizes
+                  </p>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-3">
                   {Object.entries(results.implantSizing).map(([key, value]) => (
-                    <div key={key} className="flex justify-between items-center">
-                      <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
-                        {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:
-                      </span>
-                      <span className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                    <div key={key} className={`p-3 rounded-lg ${
+                      darkMode ? 'bg-blue-900/20 border border-blue-500/30' : 'bg-blue-50 border border-blue-200'
+                    }`}>
+                      <div className={`text-xs mb-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                        {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </div>
+                      <div className={`text-base font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
                         {value}
-                      </span>
+                      </div>
                     </div>
                   ))}
                 </CardContent>
@@ -367,19 +389,25 @@ export default function HipDemo({ darkMode }: { darkMode: boolean }) {
 
               <Card className={darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'}>
                 <CardHeader>
-                  <CardTitle className={`text-base ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                    Alignment
+                  <CardTitle className={`flex items-center gap-2 text-base ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                    <Ruler className="w-4 h-4" />
+                    Alignment Metrics
                   </CardTitle>
+                  <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                    Anatomical measurements
+                  </p>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-3">
                   {Object.entries(results.alignmentMetrics).map(([key, value]) => (
-                    <div key={key} className="flex flex-col">
-                      <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-slate-500'}`}>
-                        {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:
-                      </span>
-                      <span className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                    <div key={key} className={`p-3 rounded-lg ${
+                      darkMode ? 'bg-purple-900/20 border border-purple-500/30' : 'bg-purple-50 border border-purple-200'
+                    }`}>
+                      <div className={`text-xs mb-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                        {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </div>
+                      <div className={`text-base font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
                         {value}
-                      </span>
+                      </div>
                     </div>
                   ))}
                 </CardContent>
